@@ -1,40 +1,106 @@
-import Sidebar from "../components/Sidebar"
+import { useState, useEffect } from "react"
 import Navbar from "../components/Navbar"
+import FloatingButtons from "../components/FloatingButtons"
+import TransactionModal from "../components/TransactionModal"
+import {
+  fetchTransactions,
+} from "../api/transactions"
 
 function Transactions() {
+  const [filter, setFilter] = useState("all")
+  const [transactions, setTransactions] = useState([])
+  const [selected, setSelected] = useState(null)
+
+  const load = async () => {
+    const params = {}
+    if (filter !== "all") params.type = filter
+    const res = await fetchTransactions(params)
+    if (res.success) setTransactions(res.data)
+  }
+
+  useEffect(() => {
+    load()
+  }, [filter])
+
+  const filtered =
+    filter === "all" ? transactions : transactions.filter((txn) => txn.type === filter)
+
   return (
-    <div className="flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <Navbar />
+      <FloatingButtons />
 
-      <Sidebar />
-
-      <div className="flex-1 bg-gray-100 min-h-screen">
-
-        <Navbar />
-
-        <div className="p-6">
-
-          <h2 className="text-xl font-semibold mb-4">Transactions</h2>
-
-          <table className="w-full bg-white rounded shadow">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="p-3">Date</th>
-                <th className="p-3">Category</th>
-                <th className="p-3">Amount</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr className="text-center border-t">
-                <td className="p-3">12 Mar</td>
-                <td className="p-3">Food</td>
-                <td className="p-3 text-red-500">₹500</td>
-              </tr>
-            </tbody>
-          </table>
-
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h2 className="text-4xl font-bold text-gray-800 mb-2">All Transactions</h2>
+          <p className="text-gray-600">Manage and review your transaction history</p>
         </div>
 
+        {/* Filter Buttons */}
+        <div className="flex gap-3 mb-6 animate-slideUp">
+          {["all", "income", "expense"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                filter === type
+                  ? type === "all"
+                    ? "bg-blue-500 text-white shadow-lg"
+                    : type === "income"
+                      ? "bg-green-500 text-white shadow-lg"
+                      : "bg-red-500 text-white shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-gray-100 shadow"
+              }`}
+            >
+              {type === "all" ? "All" : type === "income" ? "Income" : "Expenses"}
+            </button>
+          ))}
+        </div>
+
+        {/* Transactions List */}
+        <div className="space-y-3 animate-slideUp">
+          {filtered.map((txn, idx) => (
+            <div
+              key={txn._id || txn.id}
+              onClick={() => setSelected(txn)}
+              className="cursor-pointer bg-white p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 flex items-center justify-between group hover:scale-102"
+              style={{ animationDelay: `${idx * 0.1}s` }}
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="font-semibold text-gray-800 text-lg">{txn.category}</p>
+                    <p className="text-sm text-gray-500">{txn.description}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`text-2xl font-bold mb-1 ${
+                  txn.type === "income" ? "text-green-500" : "text-red-500"
+                }`}>
+                  {txn.type === "income" ? "+" : "-"}{txn.amount}
+                </p>
+                <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {selected && (
+          <TransactionModal
+            txn={selected}
+            onClose={() => setSelected(null)}
+            onUpdated={(updated) => {
+              setTransactions((t) =>
+                t.map((x) => (x._id === updated._id ? updated : x))
+              )
+              setSelected(updated)
+            }}
+            onDeleted={(id) => {
+              setTransactions((t) => t.filter((x) => x._id !== id))
+              setSelected(null)
+            }}
+          />
+        )}
       </div>
     </div>
   )
