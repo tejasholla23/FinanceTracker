@@ -51,6 +51,10 @@ function AddTransaction() {
     if (res.success) {
       // navigate back to transactions list
       navigate("/transactions")
+    } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
+      localStorage.removeItem("token")
+      localStorage.removeItem("name")
+      navigate("/")
     } else {
       setError(res.message || "Failed to add transaction")
     }

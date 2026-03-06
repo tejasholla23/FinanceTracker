@@ -1,9 +1,18 @@
 const API_BASE = "http://localhost:5000/api/transactions";
 
+function buildHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  const token = localStorage.getItem("token");
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 export async function fetchTransactions(params = {}) {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}?${query}`);
+    const res = await fetch(`${API_BASE}?${query}`, {
+      headers: buildHeaders(),
+    });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -14,7 +23,7 @@ export async function fetchTransactions(params = {}) {
 
 export async function fetchTransaction(id) {
   try {
-    const res = await fetch(`${API_BASE}/${id}`);
+    const res = await fetch(`${API_BASE}/${id}`, { headers: buildHeaders() });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -27,7 +36,7 @@ export async function addTransaction(data) {
   try {
     const res = await fetch(`${API_BASE}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -42,7 +51,7 @@ export async function updateTransaction(id, data) {
   try {
     const res = await fetch(`${API_BASE}/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -57,6 +66,7 @@ export async function deleteTransaction(id) {
   try {
     const res = await fetch(`${API_BASE}/${id}`, {
       method: "DELETE",
+      headers: buildHeaders(),
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return await res.json();
@@ -69,7 +79,7 @@ export async function deleteTransaction(id) {
 export async function fetchStatistics(params = {}) {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/stats?${query}`);
+    const res = await fetch(`${API_BASE}/stats?${query}`, { headers: buildHeaders() });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return await res.json();
   } catch (err) {

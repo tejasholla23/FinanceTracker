@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import FloatingButtons from "../components/FloatingButtons"
 import TransactionModal from "../components/TransactionModal"
@@ -7,16 +8,24 @@ import {
 } from "../api/transactions"
 
 function Transactions() {
-  const [filter, setFilter] = useState("all")
-  const [transactions, setTransactions] = useState([])
-  const [selected, setSelected] = useState(null)
+  const [filter, setFilter] = useState("all");
+  const [transactions, setTransactions] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
 
   const load = async () => {
-    const params = {}
-    if (filter !== "all") params.type = filter
-    const res = await fetchTransactions(params)
-    if (res.success) setTransactions(res.data)
-  }
+    const params = {};
+    if (filter !== "all") params.type = filter;
+    const res = await fetchTransactions(params);
+    if (res.success) {
+      setTransactions(res.data);
+    } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
+      // token expired or missing
+      localStorage.removeItem("token");
+      localStorage.removeItem("name");
+      navigate("/");
+    }
+  };
 
   useEffect(() => {
     load()

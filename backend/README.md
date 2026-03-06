@@ -28,12 +28,15 @@ This backend uses **Express.js** with **MongoDB** via Mongoose.
 
 ## API Endpoints
 
-- `POST /api/auth/register` - create user (currently dummy auth)
-- `GET /api/transactions` - list transactions (supports query filter)
+- `POST /api/auth/register` - register a new user; returns a JWT and user info
+- `POST /api/auth/login` - login existing user; returns a JWT and user info
+
+All `/api/transactions` endpoints are **protected** by JWT middleware. Include an `Authorization: Bearer <token>` header with requests.
+- `GET /api/transactions` - list transactions for the authenticated user (supports query filter)
 - `POST /api/transactions` - create new transaction
 - `GET /api/transactions/:id` - get single transaction
 - `PUT /api/transactions/:id` - update transaction
 - `DELETE /api/transactions/:id` - delete transaction
 - `GET /api/transactions/stats` - summary statistics
 
-Authentication is not yet enforced; transactions are tied to a placeholder user id.
+The middleware extracts the user id from the token and makes it available as `req.user` in controllers.

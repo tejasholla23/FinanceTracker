@@ -21,7 +21,8 @@ The React app will run on Vite default port (typically 5173).
 
 ## Features
 
-- User authentication (register/login) – placeholder
+- User authentication with JWT (register/login, protected routes)
+- Stores token in `localStorage` and includes it on API requests
 - Add, edit, delete transactions
 - Filter by income/expense
 - Transaction detail modal with edit/delete
@@ -35,10 +36,10 @@ Uses MongoDB via Mongoose; connection string configurable with `MONGO_URI` envir
 
 ## Future Enhancements
 
-- Real authentication with JWT
 - Recurring transactions
 - Export reports (CSV/PDF)
-- Mobile-friendly responsive tweaks
+- Mobile-friendly responsive tweaks and PWA support
 - Integration with third-party financial APIs
+- Role-based access control, multi-user support
 
 Enjoy building your finance tracker!

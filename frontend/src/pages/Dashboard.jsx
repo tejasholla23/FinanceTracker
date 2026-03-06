@@ -13,7 +13,7 @@ function Dashboard() {
 
   useEffect(() => {
     const loadStats = async () => {
-      const res = await fetchStatistics()
+      const res = await fetchStatistics();
       if (res.success) {
         setData((d) => ({
           ...d,
@@ -21,11 +21,15 @@ function Dashboard() {
           totalExpenses: res.data.totalExpenses,
           balance: res.data.balance,
           // we could derive monthly trend from stats if backend provided
-        }))
+        }));
+      } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("name");
+        window.location.href = "/"; // simple redirect
       }
-    }
-    loadStats()
-  }, [])
+    };
+    loadStats();
+  }, []);
 
   const expenseCategories = [
     { category: "Food", amount: 8500, percentage: 30, color: "#FF6B6B" },

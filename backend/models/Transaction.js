@@ -1,46 +1,72 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+const User = require('./User');
 
-const TransactionSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    category: {
-      type: String,
-      required: true,
-      enum: ["Food", "Transport", "Utilities", "Entertainment", "Shopping", "Health", "Salary", "Investment", "Other"],
-    },
-    amount: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    type: {
-      type: String,
-      required: true,
-      enum: ["income", "expense"],
-    },
-    description: {
-      type: String,
-      default: "",
-    },
-    date: {
-      type: Date,
-      default: Date.now,
-    },
-    tags: [String],
-    isRecurring: {
-      type: Boolean,
-      default: false,
-    },
-    recurringFrequency: {
-      type: String,
-      enum: ["daily", "weekly", "monthly", "yearly"],
+const Transaction = sequelize.define('Transaction', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
     },
   },
-  { timestamps: true }
-);
+  category: {
+    type: DataTypes.ENUM(
+      'Food',
+      'Transport',
+      'Utilities',
+      'Entertainment',
+      'Shopping',
+      'Health',
+      'Salary',
+      'Investment',
+      'Other'
+    ),
+    allowNull: false,
+  },
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: 0,
+    },
+  },
+  type: {
+    type: DataTypes.ENUM('income', 'expense'),
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  date: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  tags: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+  },
+  isRecurring: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  recurringFrequency: {
+    type: DataTypes.ENUM('daily', 'weekly', 'monthly', 'yearly'),
+    allowNull: true,
+  },
+}, {
+  timestamps: true,
+});
 
-module.exports = mongoose.model("Transaction", TransactionSchema);
+// Define association
+Transaction.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Transaction, { foreignKey: 'userId' });
+
+module.exports = Transaction;

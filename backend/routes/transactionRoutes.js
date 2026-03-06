@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const {
   createTransaction,
   getTransactions,
@@ -8,6 +9,9 @@ const {
   deleteTransaction,
   getStatistics,
 } = require("../controllers/transactionController");
+
+// require auth for all transaction routes
+router.use(authMiddleware);
 
 // CREATE - Add new transaction
 router.post("/", createTransaction);

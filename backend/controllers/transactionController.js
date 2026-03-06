@@ -1,4 +1,6 @@
 const Transaction = require("../models/Transaction");
+const { sequelize } = require("../config/db");
+const { Op } = require("sequelize");
 
 // Create a new transaction
 exports.createTransaction = async (req, res) => {
@@ -10,7 +12,7 @@ exports.createTransaction = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    const transaction = new Transaction({
+    const transaction = await Transaction.create({
       userId,
       category,
       amount,
@@ -22,7 +24,6 @@ exports.createTransaction = async (req, res) => {
       recurringFrequency: recurringFrequency || null,
     });
 
-    await transaction.save();
     res.status(201).json({ success: true, data: transaction });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -35,27 +36,26 @@ exports.getTransactions = async (req, res) => {
     const userId = req.user?.id || "user123";
     const { category, type, startDate, endDate, sortBy } = req.query;
 
-    let filter = { userId };
+    let where = { userId };
 
-    if (category) filter.category = category;
-    if (type) filter.type = type;
+    if (category) where.category = category;
+    if (type) where.type = type;
 
     if (startDate || endDate) {
-      filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate);
-      if (endDate) filter.date.$lte = new Date(endDate);
+      where.date = {};
+      if (startDate) where.date[Op.gte] = new Date(startDate);
+      if (endDate) where.date[Op.lte] = new Date(endDate);
     }
 
-    let query = Transaction.find(filter);
+    let order = [['date', 'DESC']]; // Default: newest first
 
     // Sorting
-    if (sortBy === "date_asc") query = query.sort({ date: 1 });
-    else if (sortBy === "date_desc") query = query.sort({ date: -1 });
-    else if (sortBy === "amount_asc") query = query.sort({ amount: 1 });
-    else if (sortBy === "amount_desc") query = query.sort({ amount: -1 });
-    else query = query.sort({ date: -1 }); // Default: newest first
+    if (sortBy === "date_asc") order = [['date', 'ASC']];
+    else if (sortBy === "date_desc") order = [['date', 'DESC']];
+    else if (sortBy === "amount_asc") order = [['amount', 'ASC']];
+    else if (sortBy === "amount_desc") order = [['amount', 'DESC']];
 
-    const transactions = await query;
+    const transactions = await Transaction.findAll({ where, order });
     res.status(200).json({ success: true, data: transactions });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -66,7 +66,7 @@ exports.getTransactions = async (req, res) => {
 exports.getTransaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const transaction = await Transaction.findById(id);
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       return res.status(404).json({ success: false, message: "Transaction not found" });
@@ -84,24 +84,22 @@ exports.updateTransaction = async (req, res) => {
     const { id } = req.params;
     const { category, amount, type, description, date, tags, isRecurring, recurringFrequency } = req.body;
 
-    const transaction = await Transaction.findByIdAndUpdate(
-      id,
-      {
-        category: category || undefined,
-        amount: amount || undefined,
-        type: type || undefined,
-        description: description || undefined,
-        date: date || undefined,
-        tags: tags || undefined,
-        isRecurring: isRecurring || undefined,
-        recurringFrequency: recurringFrequency || undefined,
-      },
-      { new: true, runValidators: true }
-    );
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       return res.status(404).json({ success: false, message: "Transaction not found" });
     }
+
+    await transaction.update({
+      category: category || transaction.category,
+      amount: amount || transaction.amount,
+      type: type || transaction.type,
+      description: description || transaction.description,
+      date: date || transaction.date,
+      tags: tags || transaction.tags,
+      isRecurring: isRecurring !== undefined ? isRecurring : transaction.isRecurring,
+      recurringFrequency: recurringFrequency || transaction.recurringFrequency,
+    });
 
     res.status(200).json({ success: true, data: transaction });
   } catch (error) {
@@ -114,12 +112,13 @@ exports.deleteTransaction = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const transaction = await Transaction.findByIdAndDelete(id);
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       return res.status(404).json({ success: false, message: "Transaction not found" });
     }
 
+    await transaction.destroy();
     res.status(200).json({ success: true, message: "Transaction deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -132,35 +131,38 @@ exports.getStatistics = async (req, res) => {
     const userId = req.user?.id || "user123";
     const { startDate, endDate } = req.query;
 
-    let filter = { userId };
+    let where = { userId };
 
     if (startDate || endDate) {
-      filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate);
-      if (endDate) filter.date.$lte = new Date(endDate);
+      where.date = {};
+      if (startDate) where.date[Op.gte] = new Date(startDate);
+      if (endDate) where.date[Op.lte] = new Date(endDate);
     }
 
-    const totalIncome = await Transaction.aggregate([
-      { $match: { ...filter, type: "income" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
+    const totalIncome = await Transaction.sum('amount', {
+      where: { ...where, type: 'income' }
+    });
 
-    const totalExpenses = await Transaction.aggregate([
-      { $match: { ...filter, type: "expense" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
+    const totalExpenses = await Transaction.sum('amount', {
+      where: { ...where, type: 'expense' }
+    });
 
-    const expensesByCategory = await Transaction.aggregate([
-      { $match: { ...filter, type: "expense" } },
-      { $group: { _id: "$category", total: { $sum: "$amount" } } },
-    ]);
+    const expensesByCategory = await Transaction.findAll({
+      attributes: [
+        'category',
+        [sequelize.fn('SUM', sequelize.col('amount')), 'total']
+      ],
+      where: { ...where, type: 'expense' },
+      group: ['category'],
+      raw: true
+    });
 
     res.status(200).json({
       success: true,
       data: {
-        totalIncome: totalIncome[0]?.total || 0,
-        totalExpenses: totalExpenses[0]?.total || 0,
-        balance: (totalIncome[0]?.total || 0) - (totalExpenses[0]?.total || 0),
+        totalIncome: totalIncome || 0,
+        totalExpenses: totalExpenses || 0,
+        balance: (totalIncome || 0) - (totalExpenses || 0),
         expensesByCategory: expensesByCategory,
       },
     });

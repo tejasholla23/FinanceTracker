@@ -1,17 +1,33 @@
-import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const location = useLocation()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [token, setToken] = useState(null);
+  const [name, setName] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    setToken(t);
+    setName(localStorage.getItem("name") || "");
+  }, [location]);
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/transactions", label: "Transactions" },
     { path: "/budget", label: "Budget" },
-  ]
+  ];
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("name");
+    setToken(null);
+    navigate("/");
+  };
 
   return (
     <nav className="w-full bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg sticky top-0 z-40 animate-slideDown">
@@ -27,41 +43,61 @@ function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
-                  isActive(item.path)
-                    ? "bg-white text-blue-600 shadow-md"
-                    : "text-white hover:bg-blue-500 hover:shadow-md"
-                }`}
-              >
-                <span>{item.label}</span>
-              </Link>
-            ))}
+            {token &&
+              navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
+                    isActive(item.path)
+                      ? "bg-white text-blue-600 shadow-md"
+                      : "text-white hover:bg-blue-500 hover:shadow-md"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                </Link>
+              ))}
           </div>
 
           <div className="flex items-center gap-4">
-            {/* User Profile */}
-            <div className="hidden md:flex items-center gap-3 bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-400 transition-colors duration-300">
-              <div className="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-sm">
-                U
-              </div>
-              <span className="text-white font-medium">User</span>
-            </div>
-
+            {token ? (
+              <>
+                {/* User Profile */}
+                <div className="hidden md:flex items-center gap-3 bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-400 transition-colors duration-300">
+                  <div className="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-sm">
+                    {name ? name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <span className="text-white font-medium">{name || "User"}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-lg"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  className="text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors duration-300"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors duration-300"
+                >
+                  Register
+                </Link>
+              </>
+            )}
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden text-white text-2xl hover:scale-110 transition-transform duration-300 font-bold"
             >
               ≡
-            </button>
-
-            {/* Logout Button */}
-            <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-lg">
-              Logout
             </button>
           </div>
         </div>
@@ -70,26 +106,46 @@ function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 animate-slideDown">
             <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
-                    isActive(item.path)
-                      ? "bg-white text-blue-600"
-                      : "text-white hover:bg-blue-500"
-                  }`}
-                >
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {token
+                ? navItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
+                        isActive(item.path)
+                          ? "bg-white text-blue-600"
+                          : "text-white hover:bg-blue-500"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                    </Link>
+                  ))
+                : null}
+              {!token && (
+                <>
+                  <Link
+                    to="/"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="px-4 py-2 rounded-lg text-white hover:bg-blue-500"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="px-4 py-2 rounded-lg text-white hover:bg-blue-500"
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
     </nav>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;
