@@ -47,17 +47,19 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow w-80">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-700 to-indigo-600">
+      <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-md w-full">
+        <h2 className="text-3xl font-extrabold mb-6 text-center text-indigo-700">
+          Welcome Back
+        </h2>
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border p-2 w-full mb-4 rounded"
+            className="border border-gray-300 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg" 
           />
 
           <input
@@ -65,22 +67,22 @@ function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 w-full mb-4 rounded"
+            className="border border-gray-300 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg" 
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-500 text-white w-full py-2 rounded disabled:opacity-50"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <p className="text-center text-sm mt-4">
+        <p className="text-center text-sm mt-4 text-gray-700">
           Don't have an account?{' '}
           <a
             href="/register"
-            className="text-blue-500 hover:underline"
+            className="text-indigo-600 hover:underline"
           >
             Register
           </a>

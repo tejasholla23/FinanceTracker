@@ -1,7 +1,8 @@
 import Navbar from "../components/Navbar"
 import FloatingButtons from "../components/FloatingButtons"
+import InsightsWidget from "../components/InsightsWidget"
 import { useState, useEffect } from "react"
-import { fetchStatistics } from "../api/transactions"
+import { fetchStatistics, fetchInsights } from "../api/transactions"
 
 function Dashboard() {
   const [data, setData] = useState({
@@ -9,6 +10,12 @@ function Dashboard() {
     totalExpenses: 0,
     balance: 0,
     monthlyTrend: [],
+  })
+  
+  const [insightsState, setInsightsState] = useState({
+    insights: [],
+    loading: true,
+    error: false
   })
 
   useEffect(() => {
@@ -20,15 +27,25 @@ function Dashboard() {
           totalIncome: res.data.totalIncome,
           totalExpenses: res.data.totalExpenses,
           balance: res.data.balance,
-          // we could derive monthly trend from stats if backend provided
         }));
       } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
         localStorage.removeItem("token");
         localStorage.removeItem("name");
-        window.location.href = "/"; // simple redirect
+        window.location.href = "/";
       }
     };
+    
+    const loadInsights = async () => {
+      const res = await fetchInsights();
+      if (res.success) {
+        setInsightsState({ insights: res.insights, loading: false, error: false });
+      } else {
+        setInsightsState({ insights: [], loading: false, error: true });
+      }
+    };
+
     loadStats();
+    loadInsights();
   }, []);
 
   const expenseCategories = [
@@ -37,14 +54,14 @@ function Dashboard() {
     { category: "Utilities", amount: 6200, percentage: 22, color: "#95E1D3" },
     { category: "Entertainment", amount: 4700, percentage: 17, color: "#FFA07A" },
     { category: "Others", amount: 4000, percentage: 13, color: "#B4A7D6" }
-  ]
+  ];
 
   const topTransactions = [
     { id: 1, description: "Salary Deposit", amount: "+₹45,000", type: "income", date: "Mar 1" },
     { id: 2, description: "Freelance Project", amount: "+₹20,000", type: "income", date: "Mar 15" },
     { id: 3, description: "Rent Payment", amount: "-₹15,000", type: "expense", date: "Mar 5" },
     { id: 4, description: "Grocery Shopping", amount: "-₹3,500", type: "expense", date: "Mar 20" },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -57,6 +74,13 @@ function Dashboard() {
           <h2 className="text-4xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
           <p className="text-gray-600">Here's your financial overview for March 2026</p>
         </div>
+
+        {/* Smart Assistant Insights */}
+        <InsightsWidget 
+          insights={insightsState.insights} 
+          loading={insightsState.loading} 
+          error={insightsState.error} 
+        />
 
         {/* Key Metrics Cards - Enhanced with animations */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -121,6 +145,7 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Savings Goal */}
           {/* Savings Goal */}
           <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.5s" }}>
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Savings Goal</h3>

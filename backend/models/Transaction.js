@@ -63,6 +63,12 @@ const Transaction = sequelize.define('Transaction', {
   },
 }, {
   timestamps: true,
+  indexes: [
+    {
+      name: 'idx_user_date_type',
+      fields: ['userId', 'date', 'type']
+    }
+  ]
 });
 
 // Define association

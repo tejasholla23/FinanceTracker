@@ -9,9 +9,13 @@ const {
   deleteTransaction,
   getStatistics,
 } = require("../controllers/transactionController");
+const { getInsights } = require("../controllers/insightsController");
 
 // require auth for all transaction routes
 router.use(authMiddleware);
+
+// READ - Get Insights (MUST come before /:id)
+router.get("/insights", getInsights);
 
 // CREATE - Add new transaction
 router.post("/", createTransaction);

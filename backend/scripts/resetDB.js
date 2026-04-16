@@ -1,6 +1,6 @@
-const { sequelize } = require('./config/db');
-const User = require('./models/User');
-const Transaction = require('./models/Transaction');
+const { sequelize } = require('../config/db');
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 
 const resetDatabase = async () => {
   try {

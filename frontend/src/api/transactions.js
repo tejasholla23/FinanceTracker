@@ -87,3 +87,14 @@ export async function fetchStatistics(params = {}) {
     return { success: false, message: err.message, data: {} };
   }
 }
+
+export async function fetchInsights() {
+  try {
+    const res = await fetch(`${API_BASE}/insights`, { headers: buildHeaders() });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("fetchInsights error:", err);
+    return { success: false, message: err.message, insights: [] };
+  }
+}

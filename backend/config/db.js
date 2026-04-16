@@ -1,4 +1,15 @@
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Validate required env variables in production
+if (isProduction) {
+  if (!process.env.DB_NAME || !process.env.DB_USER || !process.env.DB_PASSWORD) {
+    console.error('❌ Missing required database environment variables');
+    process.exit(1);
+  }
+}
 
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'finance_tracker',
@@ -8,20 +19,31 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: false, // set to console.log to see SQL queries
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
   }
 );
 
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('PostgreSQL Connected');
-    
-    // Sync models with database
-    await sequelize.sync({ alter: true });
-    console.log('Database synchronized');
+    console.log('✅ PostgreSQL Connected Successfully');
+
+    if (!isProduction) {
+      await sequelize.sync();
+      console.log('✅ Database models synchronized for development');
+    } else {
+      console.log('ℹ️ Production environment detected. Skipping model sync.');
+    }
+
   } catch (error) {
-    console.error('PostgreSQL connection failed:', error.message);
+    console.error('❌ PostgreSQL configuration or connection failed:');
+    console.error(error.message);
     process.exit(1);
   }
 };
