@@ -14,8 +14,11 @@ const VALID_TYPES = ['income', 'expense'];
 const validateTransactionData = (data) => {
   const errors = [];
 
-  if (!data.category || !VALID_CATEGORIES.includes(data.category)) {
-    errors.push('Invalid or missing category');
+  // Default to 'Other' if category is not provided
+  if (!data.category) {
+    data.category = 'Other';
+  } else if (!VALID_CATEGORIES.includes(data.category)) {
+    errors.push('Invalid category');
   }
 
   if (!data.amount || isNaN(data.amount) || parseFloat(data.amount) <= 0) {
@@ -139,24 +142,56 @@ exports.deleteTransaction = async (req, res) => {
 exports.getStatistics = async (req, res) => {
   try {
     const transactions = await Transaction.findAll({
-      where: { userId: req.user.id }
+      where: { userId: req.user.id },
+      order: [['date', 'DESC']]
     });
 
     let totalIncome = 0;
     let totalExpenses = 0;
+    const categoryTotals = {};
+    const trendsMap = {};
 
     transactions.forEach(txn => {
       const amount = parseFloat(txn.amount);
-      if (txn.type === 'income') totalIncome += amount;
-      if (txn.type === 'expense') totalExpenses += amount;
+      const dateObj = new Date(txn.date);
+      const monthYear = dateObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+      if (!trendsMap[monthYear]) {
+        trendsMap[monthYear] = { month: monthYear, income: 0, expense: 0 };
+      }
+
+      if (txn.type === 'income') {
+        totalIncome += amount;
+        trendsMap[monthYear].income += amount;
+      }
+      if (txn.type === 'expense') {
+        totalExpenses += amount;
+        categoryTotals[txn.category] = (categoryTotals[txn.category] || 0) + amount;
+        trendsMap[monthYear].expense += amount;
+      }
     });
+
+    // Helper for category colors
+    const colors = ["#FF6B6B", "#4ECDC4", "#95E1D3", "#FFA07A", "#B4A7D6", "#FFD166", "#06D6A0"];
+    const expenseCategories = Object.keys(categoryTotals).map((cat, idx) => ({
+      category: cat,
+      amount: categoryTotals[cat],
+      percentage: totalExpenses > 0 ? Math.round((categoryTotals[cat] / totalExpenses) * 100) : 0,
+      color: colors[idx % colors.length]
+    })).sort((a,b) => b.amount - a.amount);
+
+    const monthlyTrend = Object.values(trendsMap).slice(0, 6); // Last 6 recorded months
+    const topTransactions = transactions.slice(0, 4); // top 4 most recent
 
     res.status(200).json({
       success: true,
       data: {
         totalIncome,
         totalExpenses,
-        balance: totalIncome - totalExpenses
+        balance: totalIncome - totalExpenses,
+        expenseCategories,
+        topTransactions,
+        monthlyTrend
       }
     });
   } catch (error) {

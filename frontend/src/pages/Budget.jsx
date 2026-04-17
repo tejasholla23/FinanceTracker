@@ -1,20 +1,92 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navbar from "../components/Navbar"
 import FloatingButtons from "../components/FloatingButtons"
+import { fetchTransactions } from "../api/transactions"
 
 function Budget() {
-  const [budgets] = useState([
-    { category: "Food", limit: 10000, spent: 8500 },
-    { category: "Transport", limit: 5000, spent: 4200 },
-    { category: "Utilities", limit: 8000, spent: 6200 },
-    { category: "Entertainment", limit: 5000, spent: 4700 },
-    { category: "Shopping", limit: 8000, spent: 5100 },
-  ])
+  const [budgets, setBudgets] = useState([])
+  const [totalIncome, setTotalIncome] = useState(0)
+  const [totalExpenses, setTotalExpenses] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-  const totalLimit = budgets.reduce((sum, b) => sum + b.limit, 0)
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0)
-  const percentage = Math.round((totalSpent / totalLimit) * 100)
-  const remaining = totalLimit - totalSpent
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetchTransactions();
+        if (res.success && res.data && res.data.length > 0) {
+          let income = 0;
+          let expense = 0;
+          const catMap = {};
+
+          res.data.forEach(txn => {
+            const amt = parseFloat(txn.amount) || 0;
+            if (txn.type === 'income') {
+              income += amt;
+            } else if (txn.type === 'expense') {
+              expense += amt;
+              if (!catMap[txn.category]) catMap[txn.category] = 0;
+              catMap[txn.category] += amt;
+            }
+          });
+
+          const sortedCategories = Object.keys(catMap).sort((a, b) => catMap[b] - catMap[a]);
+
+          const totalCatCount = sortedCategories.length || 1;
+          const baseLimit = Math.floor(income / totalCatCount);
+
+          const derivedBudgets = sortedCategories.map(cat => ({
+            category: cat,
+            spent: catMap[cat],
+            limit: baseLimit > 0 ? baseLimit : (catMap[cat] + 1000)
+          }));
+
+          setTotalIncome(income);
+          setTotalExpenses(expense);
+          setBudgets(derivedBudgets);
+        }
+      } catch (err) {
+        console.error("Error fetching transactions for budget:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 font-medium">Loading your budgets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && totalIncome === 0 && totalExpenses === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Navbar />
+        <div className="max-w-5xl mx-auto px-6 py-24 text-center">
+          <div className="bg-white rounded-2xl shadow-sm p-12 border border-gray-100 animate-slideUp">
+            <span className="text-6xl mb-6 block">📊</span>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">No transactions yet.</h2>
+            <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+              Start adding your income and expenses to see your dynamic budget insights and spending progress.
+            </p>
+          </div>
+        </div>
+        <FloatingButtons />
+      </div>
+    );
+  }
+
+  const totalLimit = totalIncome > 0 ? totalIncome : 1;
+  const totalSpent = totalExpenses;
+  const percentage = Math.round((totalSpent / totalLimit) * 100) || 0;
+  const remaining = totalIncome - totalSpent;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -24,17 +96,16 @@ function Budget() {
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-800 mb-2">Budget Management</h2>
-          <p className="text-gray-600">Track and manage your monthly spending limits</p>
+          <p className="text-gray-600">Track and manage your monthly spending limits based on your income.</p>
         </div>
 
-        {/* Overall Budget Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 animate-slideUp">
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Monthly Overview</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
-              <p className="text-gray-600 mb-2">Total Budget</p>
-              <p className="text-3xl font-bold text-blue-600">₹{totalLimit.toLocaleString()}</p>
+              <p className="text-gray-600 mb-2">Total Budget (Income)</p>
+              <p className="text-3xl font-bold text-blue-600">₹{totalIncome.toLocaleString()}</p>
             </div>
             <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6">
               <p className="text-gray-600 mb-2">Total Spent</p>
@@ -53,64 +124,76 @@ function Budget() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${
-                  percentage > 80
+                className={`h-full rounded-full transition-all duration-500 ease-out ${percentage > 80
                     ? "bg-gradient-to-r from-red-400 to-red-600"
                     : percentage > 50
                       ? "bg-gradient-to-r from-yellow-400 to-yellow-600"
                       : "bg-gradient-to-r from-green-400 to-green-600"
-                }`}
-                style={{ width: `${percentage}%` }}
+                  }`}
+                style={{ width: `${Math.min(percentage, 100)}%` }}
               ></div>
             </div>
           </div>
         </div>
 
-        {/* Category Budgets */}
-        <div className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
-          {budgets.map((budget, idx) => {
-            const categoryPercentage = Math.round((budget.spent / budget.limit) * 100)
-            const isOver = budget.spent > budget.limit
+        {budgets.length > 0 && (
+          <div className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
+            <h3 className="text-xl font-bold text-gray-800 mb-4 px-1">
+              Category Spending vs Average Allocation
+            </h3>
 
-            return (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-all duration-300 animate-fadeIn"
-                style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="font-bold text-gray-800 text-lg">{budget.category}</p>
-                      <p className="text-sm text-gray-500">₹{budget.spent.toLocaleString()} / ₹{budget.limit.toLocaleString()}</p>
+            {budgets.map((budget, idx) => {
+              const categoryPercentage = Math.round((budget.spent / budget.limit) * 100) || 0;
+              const isOver = budget.spent > budget.limit;
+
+              return (
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-all duration-300 animate-fadeIn"
+                  style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="font-bold text-gray-800 text-lg">{budget.category}</p>
+                        <p className="text-sm text-gray-500">
+                          ₹{budget.spent.toLocaleString()} / ₹{budget.limit.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p
+                        className={`font-bold text-lg ${isOver ? "text-red-500" : categoryPercentage > 75 ? "text-yellow-500" : "text-green-500"
+                          }`}
+                      >
+                        {categoryPercentage}%
+                      </p>
+
+                      {isOver && (
+                        <p className="text-xs text-red-500 font-semibold">
+                          Over Target Allocation!
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-bold text-lg ${
-                      isOver ? "text-red-500" : categoryPercentage > 75 ? "text-yellow-500" : "text-green-500"
-                    }`}>
-                      {categoryPercentage}%
-                    </p>
-                    {isOver && <p className="text-xs text-red-500 font-semibold">Over Budget!</p>}
+
+                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ease-out ${isOver
+                          ? "bg-red-500"
+                          : categoryPercentage > 75
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                        }`}
+                      style={{ width: `${Math.min(categoryPercentage, 100)}%` }}
+                    ></div>
                   </div>
                 </div>
-
-                <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${
-                      isOver
-                        ? "bg-red-500"
-                        : categoryPercentage > 75
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                    }`}
-                    style={{ width: `${Math.min(categoryPercentage, 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

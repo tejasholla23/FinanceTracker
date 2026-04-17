@@ -28,10 +28,6 @@ function AddTransaction() {
     e.preventDefault()
     setError("")
     
-    if (!formData.category) {
-      setError("Please select a category")
-      return
-    }
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       setError("Please enter a valid amount")
       return
@@ -102,7 +98,7 @@ function AddTransaction() {
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Category</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Category (Optional)</label>
             <div className="grid grid-cols-3 gap-3">
               {categories.map((cat) => (
                 <button

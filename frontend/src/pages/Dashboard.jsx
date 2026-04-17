@@ -10,6 +10,8 @@ function Dashboard() {
     totalExpenses: 0,
     balance: 0,
     monthlyTrend: [],
+    expenseCategories: [],
+    topTransactions: [],
   })
   
   const [insightsState, setInsightsState] = useState({
@@ -27,6 +29,9 @@ function Dashboard() {
           totalIncome: res.data.totalIncome,
           totalExpenses: res.data.totalExpenses,
           balance: res.data.balance,
+          monthlyTrend: res.data.monthlyTrend || [],
+          expenseCategories: res.data.expenseCategories || [],
+          topTransactions: res.data.topTransactions || [],
         }));
       } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
         localStorage.removeItem("token");
@@ -48,20 +53,7 @@ function Dashboard() {
     loadInsights();
   }, []);
 
-  const expenseCategories = [
-    { category: "Food", amount: 8500, percentage: 30, color: "#FF6B6B" },
-    { category: "Transport", amount: 5100, percentage: 18, color: "#4ECDC4" },
-    { category: "Utilities", amount: 6200, percentage: 22, color: "#95E1D3" },
-    { category: "Entertainment", amount: 4700, percentage: 17, color: "#FFA07A" },
-    { category: "Others", amount: 4000, percentage: 13, color: "#B4A7D6" }
-  ];
 
-  const topTransactions = [
-    { id: 1, description: "Salary Deposit", amount: "+₹45,000", type: "income", date: "Mar 1" },
-    { id: 2, description: "Freelance Project", amount: "+₹20,000", type: "income", date: "Mar 15" },
-    { id: 3, description: "Rent Payment", amount: "-₹15,000", type: "expense", date: "Mar 5" },
-    { id: 4, description: "Grocery Shopping", amount: "-₹3,500", type: "expense", date: "Mar 20" },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -145,30 +137,7 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Savings Goal */}
-          {/* Savings Goal */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.5s" }}>
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Savings Goal</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-700 font-semibold">March Target</span>
-                  <span className="text-sm font-bold text-blue-600">72%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-500 ease-out"
-                    style={{ width: "72%" }}
-                  ></div>
-                </div>
-              </div>
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-gray-600 text-sm mb-2">Target: ₹50,000</p>
-                <p className="text-3xl font-bold text-blue-600">₹36,000</p>
-                <p className="text-sm text-gray-500 mt-2">₹14,000 remaining</p>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Expense Breakdown & Recent Transactions */}
@@ -177,13 +146,13 @@ function Dashboard() {
           <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.6s" }}>
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Expense Breakdown</h3>
             <div className="space-y-4">
-              {expenseCategories.map((cat, idx) => (
+              {data.expenseCategories.map((cat, idx) => (
                 <div key={idx} className="animate-fadeIn" style={{ animationDelay: `${0.7 + idx * 0.1}s` }}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div>
                         <p className="font-semibold text-gray-800">{cat.category}</p>
-                        <p className="text-sm text-gray-500">₹{cat.amount.toLocaleString()}</p>
+                        <p className="text-sm text-gray-500">₹{parseFloat(cat.amount).toLocaleString()}</p>
                       </div>
                     </div>
                     <span className="font-bold text-gray-800">{cat.percentage}%</span>
@@ -203,18 +172,18 @@ function Dashboard() {
           <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.7s" }}>
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Transactions</h3>
             <div className="space-y-3">
-              {topTransactions.map((txn, idx) => (
+              {data.topTransactions.map((txn, idx) => (
                 <div
                   key={txn.id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-102 animate-fadeIn"
                   style={{ animationDelay: `${0.8 + idx * 0.1}s` }}
                 >
                   <div>
-                    <p className="font-semibold text-gray-800">{txn.description}</p>
-                    <p className="text-xs text-gray-500">{txn.date}</p>
+                    <p className="font-semibold text-gray-800">{txn.description || txn.category}</p>
+                    <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}</p>
                   </div>
                   <span className={`font-bold text-lg ${txn.type === "income" ? "text-green-500" : "text-red-500"}`}>
-                    {txn.amount}
+                    {txn.type === "income" ? "+" : "-"}₹{parseFloat(txn.amount).toLocaleString()}
                   </span>
                 </div>
               ))}

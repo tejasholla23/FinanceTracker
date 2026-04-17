@@ -100,12 +100,12 @@ function Transactions() {
             onClose={() => setSelected(null)}
             onUpdated={(updated) => {
               setTransactions((t) =>
-                t.map((x) => (x._id === updated._id ? updated : x))
+                t.map((x) => ((x.id || x._id) === (updated.id || updated._id) ? updated : x))
               )
               setSelected(updated)
             }}
             onDeleted={(id) => {
-              setTransactions((t) => t.filter((x) => x._id !== id))
+              setTransactions((t) => t.filter((x) => (x.id || x._id) !== id))
               setSelected(null)
             }}
           />
