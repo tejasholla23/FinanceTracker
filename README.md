@@ -1,6 +1,6 @@
 # Finance Tracker
 
-This is a full-stack finance tracking application built with React (frontend) and Node/Express (backend) using MongoDB for data storage.
+This is a full-stack finance tracking application built with React (frontend) and Node/Express (backend) using PostgreSQL for data storage.
 
 ## Setup
 
@@ -28,11 +28,10 @@ The React app will run on Vite default port (typically 5173).
 - Transaction detail modal with edit/delete
 - Analytics dashboard with totals and trends
 - Floating action button to add a transaction
-- Responsive UI with animations
 
 ## Database
 
-Uses MongoDB via Mongoose; connection string configurable with `MONGO_URI` environment variable.
+PostgreSQL
 
 ## Future Enhancements
 
