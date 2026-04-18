@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 
 import Dashboard from "./pages/Dashboard";
 import AddTransaction from "./pages/AddTransaction";
@@ -9,6 +10,14 @@ import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
+  useEffect(() => {
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

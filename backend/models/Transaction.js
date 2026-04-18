@@ -61,6 +61,12 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.ENUM('daily', 'weekly', 'monthly', 'yearly'),
     allowNull: true,
   },
+  lastExecutedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null,
+    comment: 'Tracks when this recurring template last spawned a copy. Used to prevent duplicate generation.',
+  },
 }, {
   timestamps: true,
   indexes: [

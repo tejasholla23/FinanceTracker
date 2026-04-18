@@ -57,17 +57,17 @@ function AddTransaction() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <FloatingButtons />
 
       <div className="max-w-2xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">Add Transaction</h2>
-          <p className="text-gray-600">Record a new income or expense</p>
+          <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Add Transaction</h2>
+          <p className="text-gray-600 dark:text-gray-400">Record a new income or expense</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6 animate-slideUp">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 space-y-6 animate-slideUp">
           {error && (
             <div className="p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
               {error}
@@ -76,7 +76,7 @@ function AddTransaction() {
           
           {/* Transaction Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Transaction Type</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Transaction Type</label>
             <div className="flex gap-4">
               {["expense", "income"].map((type) => (
                 <button
@@ -87,7 +87,7 @@ function AddTransaction() {
                     ? type === "income"
                       ? "bg-green-500 text-white shadow-lg"
                       : "bg-red-500 text-white shadow-lg"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                   }`}
                 >
                   {type === "income" ? "Income" : "Expense"}
@@ -98,7 +98,7 @@ function AddTransaction() {
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Category (Optional)</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category (Optional)</label>
             <div className="grid grid-cols-3 gap-3">
               {categories.map((cat) => (
                 <button
@@ -108,7 +108,7 @@ function AddTransaction() {
                   className={`p-4 rounded-lg transition-all duration-300 font-semibold flex flex-col items-center gap-2 ${
                     formData.category === cat.name
                       ? "bg-blue-500 text-white shadow-lg scale-105"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
                   <span className="text-sm">{cat.name}</span>
@@ -119,27 +119,27 @@ function AddTransaction() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
             <input
               type="text"
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Enter transaction details..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300"
+              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300"
             />
           </div>
 
           {/* Amount */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Amount (₹)</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount (₹)</label>
             <input
               type="number"
               name="amount"
               value={formData.amount}
               onChange={handleChange}
               placeholder="0.00"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300 text-lg"
+              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300 text-lg"
               required
             />
           </div>

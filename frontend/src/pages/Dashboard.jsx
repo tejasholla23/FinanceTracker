@@ -56,15 +56,15 @@ function Dashboard() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <FloatingButtons />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Header Section */}
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
-          <p className="text-gray-600">Here's your financial overview for March 2026</p>
+          <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Welcome Back!</h2>
+          <p className="text-gray-600 dark:text-gray-400">Here's your financial overview for March 2026</p>
         </div>
 
         {/* Smart Assistant Insights */}
@@ -107,14 +107,14 @@ function Dashboard() {
         {/* Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Monthly Trend */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.4s" }}>
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Income vs Expenses Trend</h3>
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.4s" }}>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Income vs Expenses Trend</h3>
             <div className="space-y-6">
               {data.monthlyTrend.map((trend, idx) => (
                 <div key={idx} className="space-y-2 animate-fadeIn" style={{ animationDelay: `${0.5 + idx * 0.1}s` }}>
                   <div className="flex justify-between mb-2">
-                    <span className="font-semibold text-gray-700">{trend.month}</span>
-                    <span className="text-sm text-gray-600">Income: ₹{trend.income} | Expense: ₹{trend.expense}</span>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">{trend.month}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Income: ₹{trend.income} | Expense: ₹{trend.expense}</span>
                   </div>
                   <div className="flex gap-2 h-8">
                     {/* Income Bar */}
@@ -143,21 +143,21 @@ function Dashboard() {
         {/* Expense Breakdown & Recent Transactions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Expense Categories */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.6s" }}>
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Expense Breakdown</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.6s" }}>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Expense Breakdown</h3>
             <div className="space-y-4">
               {data.expenseCategories.map((cat, idx) => (
                 <div key={idx} className="animate-fadeIn" style={{ animationDelay: `${0.7 + idx * 0.1}s` }}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="font-semibold text-gray-800">{cat.category}</p>
-                        <p className="text-sm text-gray-500">₹{parseFloat(cat.amount).toLocaleString()}</p>
+                        <p className="font-semibold text-gray-800 dark:text-gray-200">{cat.category}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">₹{parseFloat(cat.amount).toLocaleString()}</p>
                       </div>
                     </div>
-                    <span className="font-bold text-gray-800">{cat.percentage}%</span>
+                    <span className="font-bold text-gray-800 dark:text-gray-200">{cat.percentage}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${cat.percentage}%`, backgroundColor: cat.color }}
@@ -169,18 +169,18 @@ function Dashboard() {
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.7s" }}>
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Transactions</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-slideUp" style={{ animationDelay: "0.7s" }}>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Recent Transactions</h3>
             <div className="space-y-3">
               {data.topTransactions.map((txn, idx) => (
                 <div
                   key={txn.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-102 animate-fadeIn"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 transform hover:scale-102 animate-fadeIn"
                   style={{ animationDelay: `${0.8 + idx * 0.1}s` }}
                 >
                   <div>
-                    <p className="font-semibold text-gray-800">{txn.description || txn.category}</p>
-                    <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">{txn.description || txn.category}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}</p>
                   </div>
                   <span className={`font-bold text-lg ${txn.type === "income" ? "text-green-500" : "text-red-500"}`}>
                     {txn.type === "income" ? "+" : "-"}₹{parseFloat(txn.amount).toLocaleString()}

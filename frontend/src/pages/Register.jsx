@@ -47,9 +47,9 @@ function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-600 to-teal-500">
-      <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-md w-full">
-        <h2 className="text-3xl font-extrabold mb-6 text-center text-teal-700">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-600 to-teal-500 dark:from-gray-900 dark:to-gray-800">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-md w-full">
+        <h2 className="text-3xl font-extrabold mb-6 text-center text-teal-700 dark:text-teal-400">
           Create Account
         </h2>
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
@@ -59,7 +59,7 @@ function Register() {
             placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border border-gray-300 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg"
+            className="border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg dark:bg-gray-700 dark:text-white"
           />
 
           <input
@@ -67,7 +67,7 @@ function Register() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg"
+            className="border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg dark:bg-gray-700 dark:text-white"
           />
 
           <input
@@ -75,7 +75,7 @@ function Register() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border border-gray-300 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg"
+            className="border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 p-3 w-full rounded-lg dark:bg-gray-700 dark:text-white"
           />
 
           <button
@@ -86,9 +86,9 @@ function Register() {
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
-        <p className="text-center text-sm mt-4 text-gray-700">
+        <p className="text-center text-sm mt-4 text-gray-700 dark:text-gray-300">
           Already have an account?{' '}
-          <a href="/" className="text-teal-600 hover:underline">
+          <a href="/" className="text-teal-600 dark:text-teal-400 hover:underline">
             Login
           </a>
         </p>

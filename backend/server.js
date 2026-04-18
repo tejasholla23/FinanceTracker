@@ -6,8 +6,9 @@ const rateLimit = require("express-rate-limit");
 const { connectDB } = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 
-const authRoutes = require("./routes/authRoutes");
-const transactionRoutes = require("./routes/transactionRoutes");
+const authRoutes = require('./routes/authRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const { startRecurringJob } = require('./jobs/recurringJob');
 
 const app = express();
 
@@ -52,8 +53,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Database connection
-connectDB();
+// Database connection — start recurring job only after DB is ready
+connectDB().then(() => {
+  startRecurringJob();
+}).catch((err) => {
+  console.error('❌ Failed to start DB or recurring job:', err.message);
+});
 
 // Health check route
 app.get("/api/health", (req, res) => {

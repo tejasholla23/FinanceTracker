@@ -35,14 +35,14 @@ function Transactions() {
     filter === "all" ? transactions : transactions.filter((txn) => txn.type === filter)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <FloatingButtons />
 
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">All Transactions</h2>
-          <p className="text-gray-600">Manage and review your transaction history</p>
+          <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">All Transactions</h2>
+          <p className="text-gray-600 dark:text-gray-400">Manage and review your transaction history</p>
         </div>
 
         {/* Filter Buttons */}
@@ -58,7 +58,7 @@ function Transactions() {
                     : type === "income"
                       ? "bg-green-500 text-white shadow-lg"
                       : "bg-red-500 text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-100 shadow"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 shadow"
               }`}
             >
               {type === "all" ? "All" : type === "income" ? "Income" : "Expenses"}
@@ -72,14 +72,14 @@ function Transactions() {
             <div
               key={txn._id || txn.id}
               onClick={() => setSelected(txn)}
-              className="cursor-pointer bg-white p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 flex items-center justify-between group hover:scale-102"
+              className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 flex items-center justify-between group hover:scale-102"
               style={{ animationDelay: `${idx * 0.1}s` }}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-4">
                   <div>
-                    <p className="font-semibold text-gray-800 text-lg">{txn.category}</p>
-                    <p className="text-sm text-gray-500">{txn.description}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100 text-lg">{txn.category}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{txn.description}</p>
                   </div>
                 </div>
               </div>
@@ -89,7 +89,7 @@ function Transactions() {
                 }`}>
                   {txn.type === "income" ? "+" : "-"}{txn.amount}
                 </p>
-                <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(txn.date).toLocaleDateString()}</p>
               </div>
             </div>
           ))}
@@ -98,11 +98,9 @@ function Transactions() {
           <TransactionModal
             txn={selected}
             onClose={() => setSelected(null)}
-            onUpdated={(updated) => {
-              setTransactions((t) =>
-                t.map((x) => ((x.id || x._id) === (updated.id || updated._id) ? updated : x))
-              )
-              setSelected(updated)
+            onUpdated={() => {
+              setSelected(null)
+              load()
             }}
             onDeleted={(id) => {
               setTransactions((t) => t.filter((x) => (x.id || x._id) !== id))

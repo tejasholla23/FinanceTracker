@@ -56,10 +56,10 @@ function Budget() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex justify-center items-center">
         <div className="animate-pulse flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading your budgets...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">Loading your budgets...</p>
         </div>
       </div>
     );
@@ -67,13 +67,13 @@ function Budget() {
 
   if (!loading && totalIncome === 0 && totalExpenses === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <Navbar />
         <div className="max-w-5xl mx-auto px-6 py-24 text-center">
-          <div className="bg-white rounded-2xl shadow-sm p-12 border border-gray-100 animate-slideUp">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 border border-gray-100 dark:border-gray-700 animate-slideUp">
             <span className="text-6xl mb-6 block">📊</span>
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">No transactions yet.</h2>
-            <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">No transactions yet.</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-lg mb-8 max-w-md mx-auto">
               Start adding your income and expenses to see your dynamic budget insights and spending progress.
             </p>
           </div>
@@ -89,40 +89,40 @@ function Budget() {
   const remaining = totalIncome - totalSpent;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <FloatingButtons />
 
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">Budget Management</h2>
-          <p className="text-gray-600">Track and manage your monthly spending limits based on your income.</p>
+          <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Budget Management</h2>
+          <p className="text-gray-600 dark:text-gray-400">Track and manage your monthly spending limits based on your income.</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 animate-slideUp">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">Monthly Overview</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 animate-slideUp">
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Monthly Overview</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
-              <p className="text-gray-600 mb-2">Total Budget (Income)</p>
-              <p className="text-3xl font-bold text-blue-600">₹{totalIncome.toLocaleString()}</p>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/40 rounded-xl p-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-2">Total Budget (Income)</p>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">₹{totalIncome.toLocaleString()}</p>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6">
-              <p className="text-gray-600 mb-2">Total Spent</p>
-              <p className="text-3xl font-bold text-red-600">₹{totalSpent.toLocaleString()}</p>
+            <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/40 rounded-xl p-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-2">Total Spent</p>
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">₹{totalSpent.toLocaleString()}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6">
-              <p className="text-gray-600 mb-2">Remaining</p>
-              <p className="text-3xl font-bold text-green-600">₹{remaining.toLocaleString()}</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/40 rounded-xl p-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-2">Remaining</p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">₹{remaining.toLocaleString()}</p>
             </div>
           </div>
 
           <div>
             <div className="flex justify-between mb-2">
-              <span className="font-semibold text-gray-800">Overall Progress</span>
-              <span className="font-bold text-blue-600">{percentage}%</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-200">Overall Progress</span>
+              <span className="font-bold text-blue-600 dark:text-blue-400">{percentage}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ease-out ${percentage > 80
                     ? "bg-gradient-to-r from-red-400 to-red-600"
@@ -138,7 +138,7 @@ function Budget() {
 
         {budgets.length > 0 && (
           <div className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
-            <h3 className="text-xl font-bold text-gray-800 mb-4 px-1">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 px-1">
               Category Spending vs Average Allocation
             </h3>
 
@@ -149,14 +149,14 @@ function Budget() {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-all duration-300 animate-fadeIn"
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all duration-300 animate-fadeIn"
                   style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
                       <div>
-                        <p className="font-bold text-gray-800 text-lg">{budget.category}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">{budget.category}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           ₹{budget.spent.toLocaleString()} / ₹{budget.limit.toLocaleString()}
                         </p>
                       </div>
@@ -178,7 +178,7 @@ function Budget() {
                     </div>
                   </div>
 
-                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ease-out ${isOver
                           ? "bg-red-500"

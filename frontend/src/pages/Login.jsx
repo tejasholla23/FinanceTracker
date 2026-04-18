@@ -47,9 +47,9 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-700 to-indigo-600">
-      <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-md w-full">
-        <h2 className="text-3xl font-extrabold mb-6 text-center text-indigo-700">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-700 to-indigo-600 dark:from-gray-900 dark:to-gray-800">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-md w-full">
+        <h2 className="text-3xl font-extrabold mb-6 text-center text-indigo-700 dark:text-blue-400">
           Welcome Back
         </h2>
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
@@ -59,7 +59,7 @@ function Login() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg" 
+            className="border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg dark:bg-gray-700 dark:text-white" 
           />
 
           <input
@@ -67,7 +67,7 @@ function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border border-gray-300 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg" 
+            className="border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 p-3 w-full rounded-lg dark:bg-gray-700 dark:text-white" 
           />
 
           <button
@@ -78,11 +78,11 @@ function Login() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <p className="text-center text-sm mt-4 text-gray-700">
+        <p className="text-center text-sm mt-4 text-gray-700 dark:text-gray-300">
           Don't have an account?{' '}
           <a
             href="/register"
-            className="text-indigo-600 hover:underline"
+            className="text-indigo-600 dark:text-blue-400 hover:underline"
           >
             Register
           </a>

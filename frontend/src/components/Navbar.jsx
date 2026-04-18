@@ -5,8 +5,21 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [token, setToken] = useState(null);
   const [name, setName] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const location = useLocation();
   const navigate = useNavigate();
+
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
 
   useEffect(() => {
     const t = localStorage.getItem("token");
@@ -30,7 +43,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg sticky top-0 z-40 animate-slideDown">
+    <nav className="w-full bg-gradient-to-r from-blue-600 to-blue-800 dark:from-gray-800 dark:to-gray-900 shadow-lg sticky top-0 z-40 animate-slideDown">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           {/* Logo / Brand */}
@@ -92,10 +105,18 @@ function Navbar() {
                 </Link>
               </>
             )}
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="text-white text-xl hover:scale-110 transition-transform duration-300 ml-2"
+              title="Toggle Dark Mode"
+            >
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-white text-2xl hover:scale-110 transition-transform duration-300 font-bold"
+              className="md:hidden text-white text-2xl hover:scale-110 transition-transform duration-300 font-bold ml-2"
             >
               ≡
             </button>

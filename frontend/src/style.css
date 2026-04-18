@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+
 /* Custom Animations */
 @keyframes slideDown {
   from {
