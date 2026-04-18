@@ -11,16 +11,21 @@ function Transactions() {
   const [filter, setFilter] = useState("all");
   const [transactions, setTransactions] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
   const navigate = useNavigate();
 
   const load = async () => {
-    const params = {};
+    const params = { page, limit };
     if (filter !== "all") params.type = filter;
     const res = await fetchTransactions(params);
     if (res.success) {
-      setTransactions(res.data);
+      setTransactions(res.transactions || []);
+      setTotalPages(res.totalPages || 1);
+      setTotal(res.total || 0);
     } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
-      // token expired or missing
       localStorage.removeItem("token");
       localStorage.removeItem("name");
       navigate("/");
@@ -29,10 +34,13 @@ function Transactions() {
 
   useEffect(() => {
     load()
-  }, [filter])
+  }, [filter, page])
 
-  const filtered =
-    filter === "all" ? transactions : transactions.filter((txn) => txn.type === filter)
+  // Reset to page 1 when filter changes
+  const handleFilterChange = (type) => {
+    setPage(1);
+    setFilter(type);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -50,7 +58,7 @@ function Transactions() {
           {["all", "income", "expense"].map((type) => (
             <button
               key={type}
-              onClick={() => setFilter(type)}
+              onClick={() => handleFilterChange(type)}
               className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
                 filter === type
                   ? type === "all"
@@ -68,7 +76,7 @@ function Transactions() {
 
         {/* Transactions List */}
         <div className="space-y-3 animate-slideUp">
-          {filtered.map((txn, idx) => (
+          {transactions.map((txn, idx) => (
             <div
               key={txn._id || txn.id}
               onClick={() => setSelected(txn)}
@@ -94,6 +102,42 @@ function Transactions() {
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-8 animate-fadeIn">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page <= 1}
+                className={`px-5 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                  page <= 1
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600 shadow hover:shadow-lg"
+                }`}
+              >
+                ← Previous
+              </button>
+              <span className="text-gray-700 dark:text-gray-300 font-semibold">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                disabled={page >= totalPages}
+                className={`px-5 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                  page >= totalPages
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600 shadow hover:shadow-lg"
+                }`}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
         {selected && (
           <TransactionModal
             txn={selected}

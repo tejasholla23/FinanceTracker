@@ -59,15 +59,32 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
-// READ - Get all transactions
+// READ - Get all transactions (paginated)
 exports.getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.findAll({
-      where: { userId: req.user.id },
-      order: [['date', 'DESC']]
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const where = { userId: req.user.id };
+    if (req.query.type) where.type = req.query.type;
+
+    const { count: total, rows: transactions } = await Transaction.findAndCountAll({
+      where,
+      order: [['date', 'DESC']],
+      limit,
+      offset,
     });
 
-    res.status(200).json({ success: true, count: transactions.length, data: transactions });
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      transactions,
+      total,
+      page,
+      totalPages,
+    });
   } catch (error) {
     console.error('Error fetching transactions:', error);
     res.status(500).json({ success: false, message: 'Server error' });
