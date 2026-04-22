@@ -13,12 +13,12 @@ function Budget() {
     const loadData = async () => {
       try {
         const res = await fetchTransactions();
-        if (res.success && res.data && res.data.length > 0) {
+        if (res.success && res.transactions && res.transactions.length > 0) {
           let income = 0;
           let expense = 0;
           const catMap = {};
 
-          res.data.forEach(txn => {
+          res.transactions.forEach(txn => {
             const amt = parseFloat(txn.amount) || 0;
             if (txn.type === 'income') {
               income += amt;
