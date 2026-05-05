@@ -42,10 +42,18 @@ if (process.env.NODE_ENV === 'production') {
       const host = process.env.PRODUCTION_URL;
       
       if (host) {
-        // Sanitize the URL to ensure it starts with a single '/' and doesn't contain malicious redirects
-        // req.url can contain protocol-relative paths (e.g. //example.com) which are dangerous
-        const safePath = req.url.replace(/^\/+/, '/');
-        return res.redirect(`https://${host}${safePath}`);
+        try {
+          // Use the URL constructor to safely combine the host and path
+          // This prevents protocol-relative URL injection (e.g. //malicious.com)
+          const targetUrl = new URL(req.originalUrl, `https://${host}`);
+          
+          // STRICT CHECK: Ensure the generated URL's host matches our trusted domain
+          if (targetUrl.host === host) {
+            return res.redirect(301, targetUrl.href);
+          }
+        } catch (e) {
+          console.error('Redirect error:', e.message);
+        }
       }
       
       // If no production URL is set, we log a warning but don't perform the unsafe redirect
