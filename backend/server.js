@@ -37,10 +37,17 @@ app.use(helmet({
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     if (req.header('x-forwarded-proto') !== 'https') {
-      // Use the known safe host from environment variables to prevent Open Redirect attacks
-      const host = process.env.PRODUCTION_URL || req.header('host');
-      // Note: In a real production environment, you should strictly use your known domain
-      res.redirect(`https://${host}${req.url}`);
+      // MANDATORY: Use only your trusted domain to prevent Open Redirect attacks.
+      // Set this in your .env as PRODUCTION_URL=yourdomain.com
+      const host = process.env.PRODUCTION_URL;
+      
+      if (host) {
+        return res.redirect(`https://${host}${req.url}`);
+      }
+      
+      // If no production URL is set, we log a warning but don't perform the unsafe redirect
+      console.warn('WARNING: PRODUCTION_URL is not set. HTTPS redirection skipped for safety.');
+      next();
     } else {
       next();
     }
