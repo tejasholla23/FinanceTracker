@@ -1,6 +1,15 @@
 const Transaction = require("../models/Transaction");
 const { sequelize } = require("../config/db");
 const { Op } = require("sequelize");
+const { 
+  isValidAmount, 
+  isValidDescription, 
+  sanitizeDescription,
+  isValidCategory,
+  isValidType,
+  isValidFrequency
+} = require("../utils/validation");
+const cache = require('../utils/cacheHelper');
 
 // Valid categories and types
 const VALID_CATEGORIES = [
@@ -10,29 +19,63 @@ const VALID_CATEGORIES = [
 
 const VALID_TYPES = ['income', 'expense'];
 
-// Validation helpers
-const validateTransactionData = (data) => {
+// Comprehensive validation with field limits
+const validateTransactionData = (data, isUpdate = false) => {
   const errors = [];
 
-  // Default to 'Other' if category is not provided
-  if (!data.category) {
-    data.category = 'Other';
-  } else if (!VALID_CATEGORIES.includes(data.category)) {
-    errors.push('Invalid category');
+  // Amount validation
+  if (!isUpdate || data.amount !== undefined) {
+    if (!data.amount || !isValidAmount(data.amount)) {
+      errors.push('Amount must be a positive number between 0.01 and 999,999,999');
+    }
   }
 
-  if (!data.amount || isNaN(data.amount) || parseFloat(data.amount) <= 0) {
-    errors.push('Amount must be a positive number');
+  // Type validation
+  if (!isUpdate || data.type !== undefined) {
+    if (!data.type || !isValidType(data.type)) {
+      errors.push('Type must be income or expense');
+    }
   }
 
-  if (!data.type || !VALID_TYPES.includes(data.type)) {
-    errors.push('Type must be income or expense');
+  // Category validation
+  if (!isUpdate || data.category !== undefined) {
+    if (data.category && !isValidCategory(data.category, VALID_CATEGORIES)) {
+      errors.push(`Invalid category. Valid categories: ${VALID_CATEGORIES.join(', ')}`);
+    } else if (!data.category) {
+      data.category = 'Other'; // Default
+    }
+  }
+
+  // Description validation
+  if (!isUpdate || data.description !== undefined) {
+    if (!isValidDescription(data.description)) {
+      errors.push('Description must be 500 characters or less');
+    } else if (data.description) {
+      data.description = sanitizeDescription(data.description);
+    }
+  }
+
+  // Date validation
+  if (!isUpdate || data.date !== undefined) {
+    if (data.date && isNaN(Date.parse(data.date))) {
+      errors.push('Invalid date format');
+    }
+  }
+
+  // Recurring validation
+  if (data.isRecurring !== undefined) {
+    if (typeof data.isRecurring !== 'boolean') {
+      errors.push('isRecurring must be boolean');
+    }
+    if (data.isRecurring && data.recurringFrequency) {
+      if (!isValidFrequency(data.recurringFrequency)) {
+        errors.push('Invalid recurring frequency. Valid options: daily, weekly, monthly, yearly');
+      }
+    }
   }
 
   return errors;
 };
-
-const cache = require('../utils/cache');
 
 // CREATE - Add new transaction
 exports.createTransaction = async (req, res) => {
@@ -49,8 +92,8 @@ exports.createTransaction = async (req, res) => {
       userId: req.user.id
     });
 
-    // ✅ FIXED
-    cache.del(`insights_${req.user.id}`);
+    // Clear cache with error handling
+    cache.clearUserCache(req.user.id);
 
     res.status(201).json({ success: true, data: transaction });
   } catch (error) {
@@ -67,7 +110,9 @@ exports.getTransactions = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const where = { userId: req.user.id };
-    if (req.query.type) where.type = req.query.type;
+    if (req.query.type && isValidType(req.query.type)) {
+      where.type = req.query.type;
+    }
 
     const { count: total, rows: transactions } = await Transaction.findAndCountAll({
       where,
@@ -109,10 +154,10 @@ exports.getTransaction = async (req, res) => {
   }
 };
 
-// UPDATE - Edit transaction
+// UPDATE - Edit transaction with validation
 exports.updateTransaction = async (req, res) => {
   try {
-    let transaction = await Transaction.findOne({
+    const transaction = await Transaction.findOne({
       where: { id: req.params.id, userId: req.user.id }
     });
 
@@ -120,12 +165,28 @@ exports.updateTransaction = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
 
-    transaction = await transaction.update(req.body);
+    // Validate input for updates
+    const validationErrors = validateTransactionData(req.body, true);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ success: false, errors: validationErrors });
+    }
 
-    // ✅ FIXED
-    cache.del(`insights_${req.user.id}`);
+    // Only allow specific fields to be updated
+    const allowedFields = ['category', 'amount', 'type', 'description', 'date', 'isRecurring', 'recurringFrequency'];
+    const updateData = {};
+    
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
 
-    res.status(200).json({ success: true, data: transaction });
+    const updated = await transaction.update(updateData);
+    
+    // Clear cache with error handling
+    cache.clearUserCache(req.user.id);
+
+    res.status(200).json({ success: true, data: updated });
   } catch (error) {
     console.error('Error updating transaction:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -145,8 +206,8 @@ exports.deleteTransaction = async (req, res) => {
 
     await transaction.destroy();
 
-    // ✅ FIXED
-    cache.del(`insights_${req.user.id}`);
+    // Clear cache with error handling
+    cache.clearUserCache(req.user.id);
 
     res.status(200).json({ success: true, data: {} });
   } catch (error) {
@@ -158,8 +219,20 @@ exports.deleteTransaction = async (req, res) => {
 // READ - Get statistics
 exports.getStatistics = async (req, res) => {
   try {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
     const transactions = await Transaction.findAll({
-      where: { userId: req.user.id },
+      where: { 
+        userId: req.user.id,
+        date: {
+          [Op.between]: [startOfMonth, endOfMonth]
+        }
+      },
       order: [['date', 'DESC']]
     });
 
@@ -197,18 +270,18 @@ exports.getStatistics = async (req, res) => {
       color: colors[idx % colors.length]
     })).sort((a,b) => b.amount - a.amount);
 
-    const monthlyTrend = Object.values(trendsMap).slice(0, 6); // Last 6 recorded months
-    const topTransactions = transactions.slice(0, 4); // top 4 most recent
+    const monthlyTrend = Object.values(trendsMap).slice(0, 6);
+    const topTransactions = transactions.slice(0, 4);
 
     res.status(200).json({
       success: true,
       data: {
-        totalIncome,
-        totalExpenses,
-        balance: totalIncome - totalExpenses,
-        expenseCategories,
-        topTransactions,
-        monthlyTrend
+        totalIncome: totalIncome || 0,
+        totalExpenses: totalExpenses || 0,
+        balance: (totalIncome || 0) - (totalExpenses || 0),
+        expenseCategories: expenseCategories || [],
+        topTransactions: topTransactions || [],
+        monthlyTrend: monthlyTrend || []
       }
     });
   } catch (error) {

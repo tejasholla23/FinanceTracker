@@ -14,21 +14,38 @@ function Transactions() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [error, setError] = useState("");
   const limit = 10;
   const navigate = useNavigate();
 
   const load = async () => {
-    const params = { page, limit };
-    if (filter !== "all") params.type = filter;
-    const res = await fetchTransactions(params);
-    if (res.success) {
-      setTransactions(res.transactions || []);
-      setTotalPages(res.totalPages || 1);
-      setTotal(res.total || 0);
-    } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("name");
-      navigate("/");
+    try {
+      const params = { page, limit };
+      if (filter !== "all") params.type = filter;
+      const res = await fetchTransactions(params);
+      if (res && res.success) {
+        setTransactions(Array.isArray(res.transactions) ? res.transactions : []);
+        setTotalPages(res.totalPages || 1);
+        setTotal(res.total || 0);
+        setError("");
+      } else if (res?.type === 'auth') {
+        localStorage.removeItem("token");
+        localStorage.removeItem("name");
+        navigate("/");
+      } else {
+        setError(res?.message || "Failed to load transactions");
+        setTransactions([]);
+      }
+    } catch (err) {
+      console.error("Error loading transactions:", err);
+      if (err.type === 'auth') {
+        localStorage.removeItem("token");
+        localStorage.removeItem("name");
+        navigate("/");
+      } else {
+        setError("Failed to load transactions. Please try again.");
+        setTransactions([]);
+      }
     }
   };
 
@@ -73,6 +90,13 @@ function Transactions() {
             </button>
           ))}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 mb-6 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
         {/* Transactions List */}
         <div className="space-y-3 animate-slideUp">

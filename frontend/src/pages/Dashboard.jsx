@@ -19,33 +19,67 @@ function Dashboard() {
     loading: true,
     error: false
   })
+  const [statsError, setStatsError] = useState("");
 
   useEffect(() => {
     const loadStats = async () => {
-      const res = await fetchStatistics();
-      if (res.success) {
-        setData((d) => ({
-          ...d,
-          totalIncome: res.data.totalIncome,
-          totalExpenses: res.data.totalExpenses,
-          balance: res.data.balance,
-          monthlyTrend: res.data.monthlyTrend || [],
-          expenseCategories: res.data.expenseCategories || [],
-          topTransactions: res.data.topTransactions || [],
-        }));
-      } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("name");
-        window.location.href = "/";
+      try {
+        const res = await fetchStatistics();
+        if (res && res.success && res.data) {
+          setData((d) => ({
+            ...d,
+            totalIncome: res.data.totalIncome ?? 0,
+            totalExpenses: res.data.totalExpenses ?? 0,
+            balance: res.data.balance ?? 0,
+            monthlyTrend: Array.isArray(res.data.monthlyTrend) ? res.data.monthlyTrend : [],
+            expenseCategories: Array.isArray(res.data.expenseCategories) ? res.data.expenseCategories : [],
+            topTransactions: Array.isArray(res.data.topTransactions) ? res.data.topTransactions : [],
+          }));
+          setStatsError("");
+        } else if (res?.type === 'auth') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("name");
+          window.location.href = "/";
+        } else {
+          setStatsError(res?.message || "Failed to load statistics");
+        }
+      } catch (err) {
+        console.error("Error loading statistics:", err);
+        if (err.type === 'auth') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("name");
+          window.location.href = "/";
+        } else {
+          setStatsError("Failed to load statistics. Please try refreshing.");
+        }
       }
     };
     
     const loadInsights = async () => {
-      const res = await fetchInsights();
-      if (res.success) {
-        setInsightsState({ insights: res.insights, loading: false, error: false });
-      } else {
-        setInsightsState({ insights: [], loading: false, error: true });
+      try {
+        const res = await fetchInsights();
+        if (res && res.success && res.insights) {
+          setInsightsState({ 
+            insights: Array.isArray(res.insights) ? res.insights : [], 
+            loading: false, 
+            error: false 
+          });
+        } else if (res?.type === 'auth') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("name");
+          window.location.href = "/";
+        } else {
+          setInsightsState({ insights: [], loading: false, error: true });
+        }
+      } catch (err) {
+        console.error("Error loading insights:", err);
+        if (err.type === 'auth') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("name");
+          window.location.href = "/";
+        } else {
+          setInsightsState({ insights: [], loading: false, error: true });
+        }
       }
     };
 

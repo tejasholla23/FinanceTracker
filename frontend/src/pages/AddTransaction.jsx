@@ -5,7 +5,15 @@ import FloatingButtons from "../components/FloatingButtons"
 import { addTransaction } from "../api/transactions"
 
 function AddTransaction() {
-  const [formData, setFormData] = useState({ category: "", amount: "", type: "expense", description: "" })
+  const [formData, setFormData] = useState({ 
+    category: "", 
+    amount: "", 
+    type: "expense", 
+    description: "", 
+    date: new Date().toISOString().split("T")[0],
+    isRecurring: false,
+    recurringFrequency: "monthly"
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -39,7 +47,9 @@ function AddTransaction() {
       amount: parseFloat(formData.amount),
       type: formData.type,
       description: formData.description,
-      date: new Date().toISOString().split("T")[0],
+      date: formData.date,
+      isRecurring: formData.isRecurring,
+      recurringFrequency: formData.isRecurring ? (formData.recurringFrequency || "monthly") : null,
     }
     const res = await addTransaction(payload)
     setLoading(false)
@@ -117,6 +127,19 @@ function AddTransaction() {
             </div>
           </div>
 
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300"
+              required
+            />
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
@@ -144,11 +167,48 @@ function AddTransaction() {
             />
           </div>
 
+          {/* Recurring Option */}
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                type="checkbox"
+                id="isRecurring"
+                name="isRecurring"
+                checked={formData.isRecurring}
+                onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="isRecurring" className="text-sm font-bold text-gray-800 dark:text-gray-200 cursor-pointer">
+                Set as Recurring Transaction
+              </label>
+            </div>
+
+            {formData.isRecurring && (
+              <div className="ml-8 animate-fadeIn">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Repeat Frequency</label>
+                <select
+                  name="recurringFrequency"
+                  value={formData.recurringFrequency}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:border-blue-500 focus:outline-none transition-colors duration-300"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">
+                  * A copy of this transaction will be automatically generated at the selected interval.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           >
             {loading ? "Adding..." : "Add Transaction"}
           </button>

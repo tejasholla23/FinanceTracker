@@ -19,31 +19,64 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // Validation
     if (!name || !email || !password) {
       setError("All fields are required");
       return;
     }
 
+    if (name.length < 2 || name.length > 100) {
+      setError("Name must be between 2 and 100 characters");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 10) {
+      setError("Password must be at least 10 characters long");
+      return;
+    }
+
     setLoading(true);
-    setError("");
     try {
       const res = await register({ name, email, password });
-      if (res.success) {
-        const token = res.data?.token;
-        const user = res.data?.user;
+      if (res && res.success && res.data) {
+        const token = res.data.token;
+        const user = res.data.user;
         if (token) {
           localStorage.setItem("token", token);
-          localStorage.setItem("name", user?.name || "");
+          localStorage.setItem("name", user?.name || "User");
+          navigate("/dashboard");
+        } else {
+          setError("Registration failed: No token received");
         }
-        navigate("/dashboard");
       } else {
-        setError(res.message || "Registration failed");
+        setError(res?.message || "Registration failed. Please try again.");
       }
     } catch (err) {
-      console.error("register error", err);
-      setError(err.message || "Registration error");
+      console.error("Register error:", err);
+
+      // Handle different error types
+      if (err.type === 'rate_limit') {
+        setError("Too many registration attempts. Please wait 15 minutes before trying again.");
+      } else if (err.type === 'timeout') {
+        setError("Request timed out. Please check your connection and try again.");
+      } else if (err.type === 'network') {
+        setError("Network error. Please check your internet connection.");
+      } else if (err.status === 400) {
+        setError(err.message || "Registration failed. Please check your information.");
+      } else {
+        setError(err.message || "Registration error. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

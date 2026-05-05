@@ -1,23 +1,22 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-// Helper function for email validation
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-// Helper function for password validation
-const isValidPassword = (password) => {
-  return password && password.length >= 6;
-};
+const { 
+  isValidEmail, 
+  isValidPassword, 
+  isValidName 
+} = require("../utils/validation");
+const { 
+  ValidationError, 
+  AuthenticationError 
+} = require("../utils/errors");
+const { 
+  logAuthEvent 
+} = require("../utils/logger");
 
 // register new user
 exports.register = async (req, res, next) => {
   try {
-    console.log('Register attempt for:', req.body.email);
-
     const { name, email, password } = req.body;
 
     // Validation
@@ -29,6 +28,16 @@ exports.register = async (req, res, next) => {
       });
     }
 
+    // Validate name
+    if (!isValidName(name)) {
+      return res.status(400).json({
+        success: false,
+        message: "Name must be 2-100 characters and contain only letters, spaces, hyphens, and apostrophes",
+        data: {}
+      });
+    }
+
+    // Validate email
     if (!isValidEmail(email)) {
       return res.status(400).json({
         success: false,
@@ -37,10 +46,12 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    if (!isValidPassword(password)) {
+    // Validate password
+    const passwordValidation = isValidPassword(password);
+    if (!passwordValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 6 characters long",
+        message: passwordValidation.message,
         data: {}
       });
     }
@@ -48,6 +59,7 @@ exports.register = async (req, res, next) => {
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
+      logAuthEvent('REGISTER_DUPLICATE', false, email);
       return res.status(400).json({
         success: false,
         message: "User already exists with this email",
@@ -62,10 +74,15 @@ exports.register = async (req, res, next) => {
     const user = await User.create({ name, email, password: hashedPassword });
 
     // Generate JWT
-    const payload = { id: user.id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "secretkey", { expiresIn: "7d" });
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
 
-    console.log('User registered successfully:', user.email);
+    const payload = { id: user.id, email: user.email };
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: "7d" });
+
+    logAuthEvent('REGISTER', true, email);
 
     res.status(201).json({
       success: true,
@@ -73,7 +90,9 @@ exports.register = async (req, res, next) => {
       data: { token, user: { id: user.id, name: user.name, email: user.email } }
     });
   } catch (error) {
-    console.error('Register error:', error);
+    const isDev = process.env.NODE_ENV === 'development';
+    console.error('Register error:', error.message);
+    logAuthEvent('REGISTER_ERROR', false);
     next(error);
   }
 };
@@ -81,8 +100,6 @@ exports.register = async (req, res, next) => {
 // login existing user
 exports.login = async (req, res, next) => {
   try {
-    console.log('Login attempt for:', req.body.email);
-
     const { email, password } = req.body;
 
     // Validation
@@ -105,6 +122,7 @@ exports.login = async (req, res, next) => {
     // Find user
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      logAuthEvent('LOGIN_FAILED', false, email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -115,6 +133,7 @@ exports.login = async (req, res, next) => {
     // Check password
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
+      logAuthEvent('LOGIN_FAILED', false, email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -123,10 +142,15 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate JWT
-    const payload = { id: user.id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "secretkey", { expiresIn: "7d" });
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
 
-    console.log('User logged in successfully:', user.email);
+    const payload = { id: user.id, email: user.email };
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: "7d" });
+
+    logAuthEvent('LOGIN', true, email);
 
     res.status(200).json({
       success: true,
@@ -134,7 +158,9 @@ exports.login = async (req, res, next) => {
       data: { token, user: { id: user.id, name: user.name, email: user.email } }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    const isDev = process.env.NODE_ENV === 'development';
+    console.error('Login error:', error.message);
+    logAuthEvent('LOGIN_ERROR', false);
     next(error);
   }
 };

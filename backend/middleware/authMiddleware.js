@@ -1,7 +1,14 @@
 const jwt = require("jsonwebtoken");
+const { AuthenticationError, handleError } = require("../utils/errors");
 
 const authMiddleware = (req, res, next) => {
   try {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('CRITICAL: JWT_SECRET environment variable is not set');
+      throw new AuthenticationError('Server configuration error');
+    }
+
     const auth = req.headers.authorization;
     if (!auth || !auth.startsWith("Bearer ")) {
       return res.status(401).json({
@@ -20,11 +27,15 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    const decoded = jwt.verify(token, jwtSecret);
     req.user = decoded;
     next();
   } catch (err) {
-    console.log('Auth middleware error:', err.message);
+    const isDev = process.env.NODE_ENV === 'development';
+    console.error('Auth middleware error:', err.message);
+
+    const isDev = process.env.NODE_ENV === 'development';
+    console.error('Auth middleware error:', err.message);
 
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
@@ -44,10 +55,13 @@ const authMiddleware = (req, res, next) => {
 
     return res.status(500).json({
       success: false,
-      message: "Authentication error",
+      message: isDev ? err.message : "Authentication error",
       data: {}
     });
   }
+};
+
+module.exports = authMiddleware;
 };
 
 module.exports = authMiddleware;

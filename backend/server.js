@@ -12,16 +12,42 @@ const { startRecurringJob } = require('./jobs/recurringJob');
 
 const app = express();
 
-// Security middleware
+// Security middleware - Enable CSP
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP for API
-  crossOriginEmbedderPolicy: false
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", process.env.API_URL || "http://localhost:5000"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  strictTransportSecurity: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
 }));
 
-// Rate limiting
+// HTTPS enforcement middleware - redirect HTTP to HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
+}
+
+// Global rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     success: false,
     message: "Too many requests from this IP, please try again later",
@@ -43,13 +69,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware with size limits
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Request logging middleware
+// Request logging middleware - mask sensitive data
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip}`);
+  const maskedIp = req.ip ? req.ip.replace(/(\d+)$/, 'xxx') : 'unknown';
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${maskedIp}`);
   next();
 });
 

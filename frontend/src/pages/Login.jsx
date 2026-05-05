@@ -20,7 +20,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError("Both fields are required");
+      setError("Both email and password are required");
       return;
     }
 
@@ -28,22 +28,37 @@ function Login() {
     setError("");
     try {
       const res = await login({ email, password });
-      if (res.success) {
-        const token = res.data?.token;
-        const user = res.data?.user;
+      if (res && res.success && res.data) {
+        const token = res.data.token;
+        const user = res.data.user;
         if (token) {
           localStorage.setItem("token", token);
-          localStorage.setItem("name", user?.name || "");
+          localStorage.setItem("name", user?.name || "User");
+          navigate("/dashboard");
+        } else {
+          setError("Login failed: No token received");
         }
-        navigate("/dashboard");
       } else {
-        setError(res.message || "Login failed");
+        setError(res?.message || "Login failed. Please try again.");
       }
     } catch (err) {
-      console.error("login error", err);
-      setError(err.message || "Login error");
+      console.error("Login error:", err);
+      
+      // Handle different error types
+      if (err.type === 'rate_limit') {
+        setError("Too many login attempts. Please wait 15 minutes before trying again.");
+      } else if (err.type === 'timeout') {
+        setError("Request timed out. Please check your connection and try again.");
+      } else if (err.type === 'network') {
+        setError("Network error. Please check your internet connection.");
+      } else if (err.status === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError(err.message || "Login error. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
