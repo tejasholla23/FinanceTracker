@@ -6,7 +6,8 @@ const isValidEmail = (email) => {
   if (!email || typeof email !== 'string' || email.length > 254) {
     return false;
   }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Safer regex for email to prevent ReDoS
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
 };
 

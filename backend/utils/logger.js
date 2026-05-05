@@ -22,11 +22,14 @@ const maskIP = (ip) => {
 
 const logAuthEvent = (event, success, email = null, ip = null) => {
   const timestamp = new Date().toISOString();
-  const maskedEmail = email ? maskEmail(email) : 'unknown';
-  const maskedIP = ip ? maskIP(ip) : 'unknown';
+  
+  // Sanitize all user-controlled strings to prevent log injection
+  const safeEvent = (event || 'AUTH_EVENT').replace(/[\n\r]/g, '');
+  const maskedEmail = email ? maskEmail(email).replace(/[\n\r]/g, '') : 'unknown';
+  const maskedIP = ip ? maskIP(ip).replace(/[\n\r]/g, '') : 'unknown';
   
   const status = success ? '✓' : '✗';
-  console.log(`[${timestamp}] ${status} ${event} (${maskedEmail}) from ${maskedIP}`);
+  console.log(`[${timestamp}] ${status} ${safeEvent} (${maskedEmail}) from ${maskedIP}`);
 };
 
 const logError = (context, error, includeStack = isDevelopment) => {

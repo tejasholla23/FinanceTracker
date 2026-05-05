@@ -94,10 +94,16 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Request logging middleware - mask sensitive data
+// Request logging middleware - mask sensitive data and prevent log injection
 app.use((req, res, next) => {
-  const maskedIp = req.ip ? req.ip.replace(/(\d+)$/, 'xxx') : 'unknown';
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${maskedIp}`);
+  // Safe IP masking without ReDoS-prone regex
+  const ip = req.ip || 'unknown';
+  const maskedIp = ip.length > 8 ? `${ip.slice(0, ip.lastIndexOf('.') || ip.lastIndexOf(':') || 8)}.xxx` : 'masked';
+  
+  // Sanitize user-controlled path to prevent log injection (CWE-117)
+  const safePath = (req.path || '').replace(/[\n\r]/g, '');
+  
+  console.log(`${new Date().toISOString()} - ${req.method} ${safePath} - IP: ${maskedIp}`);
   next();
 });
 
