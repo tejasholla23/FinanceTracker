@@ -24,9 +24,9 @@ const logAuthEvent = (event, success, email = null, ip = null) => {
   const timestamp = new Date().toISOString();
   
   // Sanitize all user-controlled strings to prevent log injection
-  const safeEvent = (event || 'AUTH_EVENT').replace(/[\n\r]/g, '');
-  const maskedEmail = email ? maskEmail(email).replace(/[\n\r]/g, '') : 'unknown';
-  const maskedIP = ip ? maskIP(ip).replace(/[\n\r]/g, '') : 'unknown';
+  const safeEvent = (event || 'AUTH_EVENT').replaceAll(/[\n\r]/gu, '');
+  const maskedEmail = email ? maskEmail(email).replaceAll(/[\n\r]/gu, '') : 'unknown';
+  const maskedIP = ip ? maskIP(ip).replaceAll(/[\n\r]/gu, '') : 'unknown';
   
   const status = success ? '✓' : '✗';
   console.log(`[${timestamp}] ${status} ${safeEvent} (${maskedEmail}) from ${maskedIP}`);
@@ -34,7 +34,9 @@ const logAuthEvent = (event, success, email = null, ip = null) => {
 
 const logError = (context, error, includeStack = isDevelopment) => {
   const timestamp = new Date().toISOString();
-  console.error(`[${timestamp}] ERROR in ${context}: ${error.message}`);
+  // Sanitize error message to prevent log injection
+  const safeMessage = (error.message || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
+  console.error(`[${timestamp}] ERROR in ${context}: ${safeMessage}`);
   
   if (includeStack) {
     console.error(error.stack);

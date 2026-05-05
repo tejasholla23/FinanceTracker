@@ -34,11 +34,11 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ PostgreSQL Connected Successfully');
 
-    if (!isProduction) {
+    if (isProduction) {
+      console.log('ℹ️ Production environment detected. Skipping model sync.');
+    } else {
       await sequelize.sync({ alter: true });
       console.log('✅ Database models synchronized for development (alter mode)');
-    } else {
-      console.log('ℹ️ Production environment detected. Skipping model sync.');
     }
 
   } catch (error) {

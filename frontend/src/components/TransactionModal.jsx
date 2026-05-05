@@ -1,4 +1,5 @@
 import { useState } from "react"
+import PropTypes from "prop-types"
 import { updateTransaction, deleteTransaction } from "../api/transactions"
 
 function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
@@ -25,7 +26,7 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
     setLoading(true)
     try {
       // Validation
-      if (!form.amount || parseFloat(form.amount) <= 0) {
+      if (!form.amount || Number.parseFloat(form.amount) <= 0) {
         setError("Amount must be greater than 0")
         setLoading(false)
         return
@@ -33,7 +34,7 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
 
       const payload = {
         category: form.category,
-        amount: parseFloat(form.amount),
+        amount: Number.parseFloat(form.amount),
         description: form.description,
         type: form.type,
         date: form.date,
@@ -42,7 +43,7 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
       }
       const res = await updateTransaction(txn.id, payload)
       
-      if (res && res.success && res.data) {
+      if (res?.success && res?.data) {
         onUpdated(res.data)
         setIsEditing(false)
       } else if (res?.type === 'validation') {
@@ -63,12 +64,12 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
   }
 
   const remove = async () => {
-    if (!window.confirm("Delete this transaction?")) return
+    if (!globalThis.confirm("Delete this transaction?")) return
     setError("")
     setLoading(true)
     try {
       const res = await deleteTransaction(txn.id)
-      if (res && res.success) {
+      if (res?.success) {
         onDeleted(txn.id)
       } else if (res?.type === 'auth') {
         setError("Session expired. Please log in again.")
@@ -110,8 +111,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
         {isEditing ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
               <input
+                id="category"
                 name="category"
                 value={form.category}
                 onChange={handleChange}
@@ -119,8 +121,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
               <input
+                id="amount"
                 name="amount"
                 value={form.amount}
                 onChange={handleChange}
@@ -129,8 +132,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
               <input
+                id="date"
                 name="date"
                 value={form.date}
                 onChange={handleChange}
@@ -139,8 +143,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
               <select
+                id="type"
                 name="type"
                 value={form.type}
                 onChange={handleChange}
@@ -151,8 +156,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
               <textarea
+                id="description"
                 name="description"
                 value={form.description}
                 onChange={handleChange}
@@ -176,8 +182,9 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
 
             {form.isRecurring && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
+                <label htmlFor="recurringFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
                 <select
+                  id="recurringFrequency"
                   name="recurringFrequency"
                   value={form.recurringFrequency}
                   onChange={handleChange}
@@ -242,6 +249,22 @@ function TransactionModal({ txn, onClose, onUpdated, onDeleted }) {
       </div>
     </div>
   )
+}
+
+TransactionModal.propTypes = {
+  txn: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    category: PropTypes.string,
+    amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    type: PropTypes.string,
+    date: PropTypes.string,
+    description: PropTypes.string,
+    isRecurring: PropTypes.bool,
+    recurringFrequency: PropTypes.string
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  onUpdated: PropTypes.func.isRequired,
+  onDeleted: PropTypes.func.isRequired
 }
 
 export default TransactionModal

@@ -28,7 +28,7 @@ function Login() {
     setError("");
     try {
       const res = await login({ email, password });
-      if (res && res.success && res.data) {
+      if (res?.success && res?.data) {
         const token = res.data.token;
         const user = res.data.user;
         if (token) {

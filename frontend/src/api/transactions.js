@@ -31,7 +31,7 @@ async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
     // Handle non-JSON responses
     const contentType = response.headers.get('content-type');
     let data;
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType?.includes('application/json')) {
       data = await response.json();
     } else {
       data = { success: false, message: 'Invalid response format' };
@@ -93,7 +93,7 @@ export async function fetchTransaction(id) {
 }
 
 export async function addTransaction(data) {
-  if (!data || !data.amount || !data.type) {
+  if (!data?.amount || !data?.type) {
     throw new APIError('Missing required transaction fields', 400, 'validation');
   }
   return await fetchWithTimeout(`${API_BASE}`, {

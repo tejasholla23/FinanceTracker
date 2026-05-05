@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 
 function InsightsWidget({ insights, loading, error }) {
   if (error) {
@@ -43,7 +44,7 @@ function InsightsWidget({ insights, loading, error }) {
 
           return (
             <div
-              key={idx}
+              key={`${msg}-${idx}`}
               className={`rounded-2xl p-5 shadow-sm border backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md animate-slideUp ${isWarning
                   ? "bg-red-50/80 dark:bg-red-900/30 border-red-100 dark:border-red-800 text-red-800 dark:text-red-200"
                   : "bg-green-50/80 dark:bg-green-900/30 border-green-100 dark:border-green-800 text-green-800 dark:text-green-200"
@@ -66,7 +67,7 @@ function InsightsWidget({ insights, loading, error }) {
                   </h4>
 
                   <p className="text-sm opacity-90 leading-relaxed font-medium dark:text-gray-200">
-                    {msg.replace(/[⚠️🎉]/g, "")}
+                    {msg.replace(/[⚠️🎉]/gu, "")}
                   </p>
                 </div>
               </div>
@@ -77,5 +78,11 @@ function InsightsWidget({ insights, loading, error }) {
     </div>
   );
 }
+
+InsightsWidget.propTypes = {
+  insights: PropTypes.arrayOf(PropTypes.string),
+  loading: PropTypes.bool,
+  error: PropTypes.bool
+};
 
 export default InsightsWidget;

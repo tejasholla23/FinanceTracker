@@ -23,7 +23,7 @@ function Transactions() {
       const params = { page, limit };
       if (filter !== "all") params.type = filter;
       const res = await fetchTransactions(params);
-      if (res && res.success) {
+      if (res?.success) {
         setTransactions(Array.isArray(res.transactions) ? res.transactions : []);
         setTotalPages(res.totalPages || 1);
         setTotal(res.total || 0);
@@ -78,11 +78,9 @@ function Transactions() {
               onClick={() => handleFilterChange(type)}
               className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
                 filter === type
-                  ? type === "all"
-                    ? "bg-blue-500 text-white shadow-lg"
-                    : type === "income"
-                      ? "bg-green-500 text-white shadow-lg"
-                      : "bg-red-500 text-white shadow-lg"
+                  ? (type === "all" ? "bg-blue-500 text-white shadow-lg" : 
+                     type === "income" ? "bg-green-500 text-white shadow-lg" : 
+                     "bg-red-500 text-white shadow-lg")
                   : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 shadow"
               }`}
             >
@@ -101,10 +99,10 @@ function Transactions() {
         {/* Transactions List */}
         <div className="space-y-3 animate-slideUp">
           {transactions.map((txn, idx) => (
-            <div
+            <button
               key={txn._id || txn.id}
               onClick={() => setSelected(txn)}
-              className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 flex items-center justify-between group hover:scale-102"
+              className="w-full text-left cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 flex items-center justify-between group hover:scale-102"
               style={{ animationDelay: `${idx * 0.1}s` }}
             >
               <div className="flex-1">
@@ -123,7 +121,7 @@ function Transactions() {
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(txn.date).toLocaleDateString()}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 

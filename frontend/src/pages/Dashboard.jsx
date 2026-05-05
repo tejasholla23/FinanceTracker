@@ -20,7 +20,7 @@ function Dashboard() {
     loading: true,
     error: false
   })
-  const [statsError, setStatsError] = useState("");
+  // Removed unused statsError state
 
   useEffect(() => {
     const loadStats = async () => {
@@ -37,22 +37,16 @@ function Dashboard() {
             topTransactions: Array.isArray(res.data.topTransactions) ? res.data.topTransactions : [],
             period: res.data.period || { name: "this month" }
           }));
-          setStatsError("");
-        } else if (res?.type === 'auth') {
-          localStorage.removeItem("token");
-          localStorage.removeItem("name");
-          window.location.href = "/";
-        } else {
-          setStatsError(res?.message || "Failed to load statistics");
+          // Removed assignment to unused statsError
         }
       } catch (err) {
-        console.error("Error loading statistics:", err);
+        const safeMessage = (err.message || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
+        console.error(`Error loading statistics: ${safeMessage}`);
         if (err.type === 'auth') {
           localStorage.removeItem("token");
           localStorage.removeItem("name");
-          window.location.href = "/";
-        } else {
-          setStatsError("Failed to load statistics. Please try refreshing.");
+          globalThis.location.href = "/";
+          // Removed assignment to unused statsError
         }
       }
     };
@@ -69,16 +63,17 @@ function Dashboard() {
         } else if (res?.type === 'auth') {
           localStorage.removeItem("token");
           localStorage.removeItem("name");
-          window.location.href = "/";
+          globalThis.location.href = "/";
         } else {
           setInsightsState({ insights: [], loading: false, error: true });
         }
       } catch (err) {
-        console.error("Error loading insights:", err);
+        const safeMessage = (err.message || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
+        console.error(`Error loading insights: ${safeMessage}`);
         if (err.type === 'auth') {
           localStorage.removeItem("token");
           localStorage.removeItem("name");
-          window.location.href = "/";
+          globalThis.location.href = "/";
         } else {
           setInsightsState({ insights: [], loading: false, error: true });
         }
@@ -147,7 +142,7 @@ function Dashboard() {
             <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Income vs Expenses Trend</h3>
             <div className="space-y-6">
               {data.monthlyTrend.map((trend, idx) => (
-                <div key={idx} className="space-y-2 animate-fadeIn" style={{ animationDelay: `${0.5 + idx * 0.1}s` }}>
+                <div key={`${trend.month}-${idx}`} className="space-y-2 animate-fadeIn" style={{ animationDelay: `${0.5 + idx * 0.1}s` }}>
                   <div className="flex justify-between mb-2">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">{trend.month}</span>
                     <span className="text-sm text-gray-600 dark:text-gray-400">Income: ₹{trend.income} | Expense: ₹{trend.expense}</span>
@@ -183,12 +178,12 @@ function Dashboard() {
             <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Expense Breakdown</h3>
             <div className="space-y-4">
               {data.expenseCategories.map((cat, idx) => (
-                <div key={idx} className="animate-fadeIn" style={{ animationDelay: `${0.7 + idx * 0.1}s` }}>
+                <div key={`${cat.category}-${idx}`} className="animate-fadeIn" style={{ animationDelay: `${0.7 + idx * 0.1}s` }}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div>
                         <p className="font-semibold text-gray-800 dark:text-gray-200">{cat.category}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">₹{parseFloat(cat.amount).toLocaleString()}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">₹{Number.parseFloat(cat.amount).toLocaleString()}</p>
                       </div>
                     </div>
                     <span className="font-bold text-gray-800 dark:text-gray-200">{cat.percentage}%</span>
@@ -219,7 +214,7 @@ function Dashboard() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}</p>
                   </div>
                   <span className={`font-bold text-lg ${txn.type === "income" ? "text-green-500" : "text-red-500"}`}>
-                    {txn.type === "income" ? "+" : "-"}₹{parseFloat(txn.amount).toLocaleString()}
+                    {txn.type === "income" ? "+" : "-"}₹{Number.parseFloat(txn.amount).toLocaleString()}
                   </span>
                 </div>
               ))}

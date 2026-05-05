@@ -13,13 +13,13 @@ function Budget() {
     const loadData = async () => {
       try {
         const res = await fetchTransactions();
-        if (res.success && res.transactions && res.transactions.length > 0) {
+        if (res?.success && res?.transactions?.length > 0) {
           let income = 0;
           let expense = 0;
           const catMap = {};
 
           res.transactions.forEach(txn => {
-            const amt = parseFloat(txn.amount) || 0;
+            const amt = Number.parseFloat(txn.amount) || 0;
             if (txn.type === 'income') {
               income += amt;
             } else if (txn.type === 'expense') {
@@ -124,12 +124,11 @@ function Budget() {
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${percentage > 80
-                    ? "bg-gradient-to-r from-red-400 to-red-600"
-                    : percentage > 50
-                      ? "bg-gradient-to-r from-yellow-400 to-yellow-600"
-                      : "bg-gradient-to-r from-green-400 to-green-600"
-                  }`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                  percentage > 80 ? "bg-gradient-to-r from-red-400 to-red-600" :
+                  percentage > 50 ? "bg-gradient-to-r from-yellow-400 to-yellow-600" :
+                  "bg-gradient-to-r from-green-400 to-green-600"
+                }`}
                 style={{ width: `${Math.min(percentage, 100)}%` }}
               ></div>
             </div>
@@ -148,7 +147,7 @@ function Budget() {
 
               return (
                 <div
-                  key={idx}
+                  key={`${budget.category}-${idx}`}
                   className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all duration-300 animate-fadeIn"
                   style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
                 >
@@ -164,8 +163,11 @@ function Budget() {
 
                     <div className="text-right">
                       <p
-                        className={`font-bold text-lg ${isOver ? "text-red-500" : categoryPercentage > 75 ? "text-yellow-500" : "text-green-500"
-                          }`}
+                        className={`font-bold text-lg ${
+                          isOver ? "text-red-500" : 
+                          categoryPercentage > 75 ? "text-yellow-500" : 
+                          "text-green-500"
+                        }`}
                       >
                         {categoryPercentage}%
                       </p>
@@ -180,12 +182,11 @@ function Budget() {
 
                   <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ease-out ${isOver
-                          ? "bg-red-500"
-                          : categoryPercentage > 75
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
-                        }`}
+                      className={`h-full rounded-full transition-all duration-500 ease-out ${
+                        isOver ? "bg-red-500" : 
+                        categoryPercentage > 75 ? "bg-yellow-500" : 
+                        "bg-green-500"
+                      }`}
                       style={{ width: `${Math.min(categoryPercentage, 100)}%` }}
                     ></div>
                   </div>

@@ -36,7 +36,7 @@ function AddTransaction() {
     e.preventDefault()
     setError("")
     
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+    if (!formData.amount || Number.parseFloat(formData.amount) <= 0) {
       setError("Please enter a valid amount")
       return
     }
@@ -44,7 +44,7 @@ function AddTransaction() {
     setLoading(true)
     const payload = {
       category: formData.category,
-      amount: parseFloat(formData.amount),
+      amount: Number.parseFloat(formData.amount),
       type: formData.type,
       description: formData.description,
       date: formData.date,
@@ -54,15 +54,15 @@ function AddTransaction() {
     const res = await addTransaction(payload)
     setLoading(false)
     
-    if (res.success) {
+    if (res?.success) {
       // navigate back to transactions list
       navigate("/transactions")
-    } else if (res.message && res.message.toLowerCase().includes("unauthorized")) {
+    } else if (res?.message?.toLowerCase().includes("unauthorized")) {
       localStorage.removeItem("token")
       localStorage.removeItem("name")
       navigate("/")
     } else {
-      setError(res.message || "Failed to add transaction")
+      setError(res?.message || "Failed to add transaction")
     }
   }
 
@@ -94,9 +94,7 @@ function AddTransaction() {
                   type="button"
                   onClick={() => setFormData({ ...formData, type })}
                   className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${formData.type === type
-                    ? type === "income"
-                      ? "bg-green-500 text-white shadow-lg"
-                      : "bg-red-500 text-white shadow-lg"
+                    ? (type === "income" ? "bg-green-500 text-white shadow-lg" : "bg-red-500 text-white shadow-lg")
                     : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                   }`}
                 >
@@ -127,10 +125,10 @@ function AddTransaction() {
             </div>
           </div>
 
-          {/* Date */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
+            <label htmlFor="date" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
             <input
+              id="date"
               type="date"
               name="date"
               value={formData.date}
@@ -142,8 +140,9 @@ function AddTransaction() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
             <input
+              id="description"
               type="text"
               name="description"
               value={formData.description}
@@ -155,8 +154,9 @@ function AddTransaction() {
 
           {/* Amount */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount (₹)</label>
+            <label htmlFor="amount" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount (₹)</label>
             <input
+              id="amount"
               type="number"
               name="amount"
               value={formData.amount}
@@ -185,8 +185,9 @@ function AddTransaction() {
 
             {formData.isRecurring && (
               <div className="ml-8 animate-fadeIn">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Repeat Frequency</label>
+                <label htmlFor="recurringFrequency" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Repeat Frequency</label>
                 <select
+                  id="recurringFrequency"
                   name="recurringFrequency"
                   value={formData.recurringFrequency}
                   onChange={handleChange}

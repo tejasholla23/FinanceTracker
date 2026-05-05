@@ -110,7 +110,7 @@ exports.getInsights = async (req, res) => {
       // Convert to human readable strings
       insights = results.map(row => {
         if (row.type === 'transaction') {
-          return `⚠️ A transaction of ₹${parseFloat(row.amount).toLocaleString()} in '${row.category}' is unusually high compared to your usual ₹${Math.round(row.avg_amount)} average.`;
+          return `⚠️ A transaction of ₹${Number.parseFloat(row.amount).toLocaleString()} in '${row.category}' is unusually high compared to your usual ₹${Math.round(row.avg_amount)} average.`;
         } else {
           return `📈 Your total ${row.category} spending is ${Math.round(row.percentage_increase)}% higher than your historical average.`;
         }

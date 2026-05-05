@@ -58,7 +58,7 @@ const validateDescriptionField = (data, isUpdate, errors) => {
 
 const validateDateField = (date, isUpdate, errors) => {
   if (!isUpdate || date !== undefined) {
-    if (date && isNaN(Date.parse(date))) {
+    if (date && Number.isNaN(Date.parse(date))) {
       errors.push('Invalid date format');
     }
   }
@@ -270,7 +270,7 @@ exports.getStatistics = async (req, res) => {
     const trendsMap = {};
 
     monthTransactions.forEach(txn => {
-      const amount = parseFloat(txn.amount);
+      const amount = Number.parseFloat(txn.amount);
       const dateObj = new Date(txn.date);
       const monthYear = dateObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 

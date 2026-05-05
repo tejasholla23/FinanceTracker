@@ -36,32 +36,32 @@ app.use(helmet({
 // HTTPS enforcement middleware - redirect HTTP to HTTPS in production
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https') {
-      // MANDATORY: Use only your trusted domain to prevent Open Redirect attacks.
-      // Set this in your .env as PRODUCTION_URL=yourdomain.com
-      const host = process.env.PRODUCTION_URL;
-      
-      if (host) {
-        try {
-          // Use the URL constructor to safely combine the host and path
-          // This prevents protocol-relative URL injection (e.g. //malicious.com)
-          const targetUrl = new URL(req.originalUrl, `https://${host}`);
-          
-          // STRICT CHECK: Ensure the generated URL's host matches our trusted domain
-          if (targetUrl.host === host) {
-            return res.redirect(301, targetUrl.href);
-          }
-        } catch (e) {
-          console.error('Redirect error:', e.message);
-        }
-      }
-      
-      // If no production URL is set, we log a warning but don't perform the unsafe redirect
-      console.warn('WARNING: PRODUCTION_URL is not set. HTTPS redirection skipped for safety.');
-      next();
-    } else {
-      next();
+    if (req.header('x-forwarded-proto') === 'https') {
+      return next();
     }
+
+    // MANDATORY: Use only your trusted domain to prevent Open Redirect attacks.
+    // Set this in your .env as PRODUCTION_URL=yourdomain.com
+    const host = process.env.PRODUCTION_URL;
+    
+    if (host) {
+      try {
+        // Use the URL constructor to safely combine the host and path
+        // This prevents protocol-relative URL injection (e.g. //malicious.com)
+        const targetUrl = new URL(req.originalUrl, `https://${host}`);
+        
+        // STRICT CHECK: Ensure the generated URL's host matches our trusted domain
+        if (targetUrl.host === host) {
+          return res.redirect(301, targetUrl.href);
+        }
+      } catch (e) {
+        console.error('Redirect error:', e.message);
+      }
+    }
+    
+    // If no production URL is set, we log a warning but don't perform the unsafe redirect
+    console.warn('WARNING: PRODUCTION_URL is not set. HTTPS redirection skipped for safety.');
+    next();
   });
 }
 
@@ -101,7 +101,7 @@ app.use((req, res, next) => {
   const maskedIp = ip.length > 8 ? `${ip.slice(0, ip.lastIndexOf('.') || ip.lastIndexOf(':') || 8)}.xxx` : 'masked';
   
   // Sanitize user-controlled path to prevent log injection (CWE-117)
-  const safePath = (req.path || '').replace(/[\n\r]/g, '');
+  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '');
   
   console.log(`${new Date().toISOString()} - ${req.method} ${safePath} - IP: ${maskedIp}`);
   next();
@@ -132,7 +132,9 @@ app.use("/api/transactions", transactionRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  console.log(`404: ${req.method} ${req.path}`);
+  // Sanitize path to prevent log injection
+  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '');
+  console.log(`404: ${req.method} ${safePath.substring(0, 100)}`);
   res.status(404).json({
     success: false,
     message: "Route not found",

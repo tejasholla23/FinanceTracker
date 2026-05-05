@@ -36,7 +36,7 @@ const isValidPassword = (password) => {
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumbers = /\d/.test(password);
-  const hasSpecialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  const hasSpecialChars = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
 
   if (!(hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChars)) {
     return {
@@ -61,8 +61,8 @@ const isValidName = (name) => {
 };
 
 const isValidAmount = (amount) => {
-  const num = parseFloat(amount);
-  return !isNaN(num) && num > 0 && num <= 999999999;
+  const num = Number.parseFloat(amount);
+  return !Number.isNaN(num) && num > 0 && num <= 999999999;
 };
 
 const isValidDescription = (description) => {
@@ -76,16 +76,16 @@ const isValidDescription = (description) => {
 const sanitizeDescription = (description) => {
   if (!description) return '';
   // Remove HTML tags
-  let sanitized = description.replace(/<[^>]*>/g, '');
+  let sanitized = description.replaceAll(/<[^>]*>/gu, '');
   // Remove control characters
-  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+  sanitized = sanitized.replaceAll(/[\x00-\x1F\x7F]/gu, '');
   return sanitized.trim();
 };
 
 const isValidDate = (date) => {
   if (!date) return false;
   const d = new Date(date);
-  return d instanceof Date && !isNaN(d.getTime());
+  return d instanceof Date && !Number.isNaN(d.getTime());
 };
 
 const isValidCategory = (category, validCategories) => {

@@ -31,7 +31,7 @@ async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
     // Handle non-JSON responses
     const contentType = response.headers.get('content-type');
     let data;
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType?.includes('application/json')) {
       data = await response.json();
     } else {
       data = { success: false, message: 'Invalid response format' };
@@ -67,34 +67,26 @@ async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
 
 export async function register(user) {
   // Input validation
-  if (!user || !user.email || !user.password || !user.name) {
+  if (!user?.email || !user?.password || !user?.name) {
     throw new APIError('Missing required fields', 400, 'validation');
   }
 
-  try {
-    return await fetchWithTimeout(`${BASE}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
-    });
-  } catch (err) {
-    throw err;
-  }
+  return await fetchWithTimeout(`${BASE}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(user),
+  });
 }
 
 export async function login(credentials) {
   // Input validation
-  if (!credentials || !credentials.email || !credentials.password) {
+  if (!credentials?.email || !credentials?.password) {
     throw new APIError('Missing email or password', 400, 'validation');
   }
 
-  try {
-    return await fetchWithTimeout(`${BASE}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
-    });
-  } catch (err) {
-    throw err;
-  }
+  return await fetchWithTimeout(`${BASE}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(credentials),
+  });
 }
