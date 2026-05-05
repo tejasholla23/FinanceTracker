@@ -17,63 +17,66 @@ function Register() {
     }
   }, [navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    // Validation
+  const validateForm = () => {
     if (!name || !email || !password) {
       setError("All fields are required");
-      return;
+      return false;
     }
 
     if (name.length < 2 || name.length > 100) {
       setError("Name must be between 2 and 100 characters");
-      return;
+      return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email address");
-      return;
+      return false;
     }
 
     if (password.length < 10) {
       setError("Password must be at least 10 characters long");
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  const handleRegisterError = (err) => {
+    console.error("Register error:", err);
+
+    if (err.type === 'rate_limit') {
+      setError("Too many registration attempts. Please wait 15 minutes before trying again.");
+    } else if (err.type === 'timeout') {
+      setError("Request timed out. Please check your connection and try again.");
+    } else if (err.type === 'network') {
+      setError("Network error. Please check your internet connection.");
+    } else if (err.status === 400) {
+      setError(err.message || "Registration failed. Please check your information.");
+    } else {
+      setError(err.message || "Registration error. Please try again.");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
       const res = await register({ name, email, password });
-      if (res && res.success && res.data) {
-        const token = res.data.token;
-        const user = res.data.user;
-        if (token) {
-          localStorage.setItem("token", token);
-          localStorage.setItem("name", user?.name || "User");
-          navigate("/dashboard");
-        } else {
-          setError("Registration failed: No token received");
-        }
+      
+      if (res?.success && res?.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("name", res.data.user?.name || "User");
+        navigate("/dashboard");
       } else {
         setError(res?.message || "Registration failed. Please try again.");
       }
     } catch (err) {
-      console.error("Register error:", err);
-
-      // Handle different error types
-      if (err.type === 'rate_limit') {
-        setError("Too many registration attempts. Please wait 15 minutes before trying again.");
-      } else if (err.type === 'timeout') {
-        setError("Request timed out. Please check your connection and try again.");
-      } else if (err.type === 'network') {
-        setError("Network error. Please check your internet connection.");
-      } else if (err.status === 400) {
-        setError(err.message || "Registration failed. Please check your information.");
-      } else {
-        setError(err.message || "Registration error. Please try again.");
-      }
+      handleRegisterError(err);
     } finally {
       setLoading(false);
     }

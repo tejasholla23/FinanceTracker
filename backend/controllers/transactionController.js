@@ -19,25 +19,24 @@ const VALID_CATEGORIES = [
 
 const VALID_TYPES = ['income', 'expense'];
 
-// Comprehensive validation with field limits
-const validateTransactionData = (data, isUpdate = false) => {
-  const errors = [];
-
-  // Amount validation
-  if (!isUpdate || data.amount !== undefined) {
-    if (!data.amount || !isValidAmount(data.amount)) {
+// Sub-validation functions for better maintainability and lower cognitive complexity
+const validateAmountField = (amount, isUpdate, errors) => {
+  if (!isUpdate || amount !== undefined) {
+    if (!amount || !isValidAmount(amount)) {
       errors.push('Amount must be a positive number between 0.01 and 999,999,999');
     }
   }
+};
 
-  // Type validation
-  if (!isUpdate || data.type !== undefined) {
-    if (!data.type || !isValidType(data.type)) {
+const validateTypeField = (type, isUpdate, errors) => {
+  if (!isUpdate || type !== undefined) {
+    if (!type || !isValidType(type)) {
       errors.push('Type must be income or expense');
     }
   }
+};
 
-  // Category validation
+const validateCategoryField = (data, isUpdate, errors) => {
   if (!isUpdate || data.category !== undefined) {
     if (data.category && !isValidCategory(data.category, VALID_CATEGORIES)) {
       errors.push(`Invalid category. Valid categories: ${VALID_CATEGORIES.join(', ')}`);
@@ -45,8 +44,9 @@ const validateTransactionData = (data, isUpdate = false) => {
       data.category = 'Other'; // Default
     }
   }
+};
 
-  // Description validation
+const validateDescriptionField = (data, isUpdate, errors) => {
   if (!isUpdate || data.description !== undefined) {
     if (!isValidDescription(data.description)) {
       errors.push('Description must be 500 characters or less');
@@ -54,15 +54,17 @@ const validateTransactionData = (data, isUpdate = false) => {
       data.description = sanitizeDescription(data.description);
     }
   }
+};
 
-  // Date validation
-  if (!isUpdate || data.date !== undefined) {
-    if (data.date && isNaN(Date.parse(data.date))) {
+const validateDateField = (date, isUpdate, errors) => {
+  if (!isUpdate || date !== undefined) {
+    if (date && isNaN(Date.parse(date))) {
       errors.push('Invalid date format');
     }
   }
+};
 
-  // Recurring validation
+const validateRecurringField = (data, errors) => {
   if (data.isRecurring !== undefined) {
     if (typeof data.isRecurring !== 'boolean') {
       errors.push('isRecurring must be boolean');
@@ -73,6 +75,18 @@ const validateTransactionData = (data, isUpdate = false) => {
       }
     }
   }
+};
+
+// Comprehensive validation with field limits
+const validateTransactionData = (data, isUpdate = false) => {
+  const errors = [];
+
+  validateAmountField(data.amount, isUpdate, errors);
+  validateTypeField(data.type, isUpdate, errors);
+  validateCategoryField(data, isUpdate, errors);
+  validateDescriptionField(data, isUpdate, errors);
+  validateDateField(data.date, isUpdate, errors);
+  validateRecurringField(data, errors);
 
   return errors;
 };
