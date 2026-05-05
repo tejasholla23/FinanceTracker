@@ -110,4 +110,4 @@ async function processRecurringTransactions() {
   return { processed, skipped, errors };
 }
 
-module.exports = { processRecurringTransactions };
+module.exports.processRecurringTransactions = processRecurringTransactions;
