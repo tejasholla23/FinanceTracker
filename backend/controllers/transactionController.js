@@ -219,14 +219,21 @@ exports.deleteTransaction = async (req, res) => {
 // READ - Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
+    const { month, year } = req.query;
+    
+    // Default to current month/year if not provided
+    const now = new Date();
+    const targetMonth = month !== undefined ? parseInt(month) : now.getMonth();
+    const targetYear = year !== undefined ? parseInt(year) : now.getFullYear();
+
+    const startOfMonth = new Date(targetYear, targetMonth, 1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+    const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
-    const transactions = await Transaction.findAll({
+    // Fetch transactions for the specific month for totals and trend
+    const monthTransactions = await Transaction.findAll({
       where: { 
         userId: req.user.id,
         date: {
@@ -236,12 +243,19 @@ exports.getStatistics = async (req, res) => {
       order: [['date', 'DESC']]
     });
 
+    // Fetch TOP 4 most recent transactions GLOBALLY (not filtered by month)
+    const topTransactions = await Transaction.findAll({
+      where: { userId: req.user.id },
+      order: [['date', 'DESC']],
+      limit: 4
+    });
+
     let totalIncome = 0;
     let totalExpenses = 0;
     const categoryTotals = {};
     const trendsMap = {};
 
-    transactions.forEach(txn => {
+    monthTransactions.forEach(txn => {
       const amount = parseFloat(txn.amount);
       const dateObj = new Date(txn.date);
       const monthYear = dateObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
@@ -271,7 +285,6 @@ exports.getStatistics = async (req, res) => {
     })).sort((a,b) => b.amount - a.amount);
 
     const monthlyTrend = Object.values(trendsMap).slice(0, 6);
-    const topTransactions = transactions.slice(0, 4);
 
     res.status(200).json({
       success: true,
@@ -281,11 +294,16 @@ exports.getStatistics = async (req, res) => {
         balance: (totalIncome || 0) - (totalExpenses || 0),
         expenseCategories: expenseCategories || [],
         topTransactions: topTransactions || [],
-        monthlyTrend: monthlyTrend || []
+        monthlyTrend: monthlyTrend || [],
+        period: {
+          month: targetMonth,
+          year: targetYear,
+          name: startOfMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+        }
       }
     });
   } catch (error) {
     console.error('Error fetching statistics:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
-};
+};

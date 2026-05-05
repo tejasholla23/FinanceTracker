@@ -12,6 +12,7 @@ function Dashboard() {
     monthlyTrend: [],
     expenseCategories: [],
     topTransactions: [],
+    period: { name: "this month" }
   })
   
   const [insightsState, setInsightsState] = useState({
@@ -34,6 +35,7 @@ function Dashboard() {
             monthlyTrend: Array.isArray(res.data.monthlyTrend) ? res.data.monthlyTrend : [],
             expenseCategories: Array.isArray(res.data.expenseCategories) ? res.data.expenseCategories : [],
             topTransactions: Array.isArray(res.data.topTransactions) ? res.data.topTransactions : [],
+            period: res.data.period || { name: "this month" }
           }));
           setStatsError("");
         } else if (res?.type === 'auth') {
@@ -98,7 +100,7 @@ function Dashboard() {
         {/* Header Section */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Welcome Back!</h2>
-          <p className="text-gray-600 dark:text-gray-400">Here's your financial overview for March 2026</p>
+          <p className="text-gray-600 dark:text-gray-400">Here's your financial overview for {data.period.name}</p>
         </div>
 
         {/* Smart Assistant Insights */}

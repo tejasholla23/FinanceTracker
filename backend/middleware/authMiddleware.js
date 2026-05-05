@@ -34,9 +34,6 @@ const authMiddleware = (req, res, next) => {
     const isDev = process.env.NODE_ENV === 'development';
     console.error('Auth middleware error:', err.message);
 
-    const isDev = process.env.NODE_ENV === 'development';
-    console.error('Auth middleware error:', err.message);
-
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -59,9 +56,6 @@ const authMiddleware = (req, res, next) => {
       data: {}
     });
   }
-};
-
-module.exports = authMiddleware;
 };
 
 module.exports = authMiddleware;
