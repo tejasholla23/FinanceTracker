@@ -42,7 +42,10 @@ if (process.env.NODE_ENV === 'production') {
       const host = process.env.PRODUCTION_URL;
       
       if (host) {
-        return res.redirect(`https://${host}${req.url}`);
+        // Sanitize the URL to ensure it starts with a single '/' and doesn't contain malicious redirects
+        // req.url can contain protocol-relative paths (e.g. //example.com) which are dangerous
+        const safePath = req.url.replace(/^\/+/, '/');
+        return res.redirect(`https://${host}${safePath}`);
       }
       
       // If no production URL is set, we log a warning but don't perform the unsafe redirect
