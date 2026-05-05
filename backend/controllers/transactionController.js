@@ -223,8 +223,8 @@ exports.getStatistics = async (req, res) => {
     
     // Default to current month/year if not provided
     const now = new Date();
-    const targetMonth = month !== undefined ? parseInt(month) : now.getMonth();
-    const targetYear = year !== undefined ? parseInt(year) : now.getFullYear();
+    const targetMonth = month === undefined ? now.getMonth() : Number.parseInt(month, 10);
+    const targetYear = year === undefined ? now.getFullYear() : Number.parseInt(year, 10);
 
     const startOfMonth = new Date(targetYear, targetMonth, 1);
     startOfMonth.setHours(0, 0, 0, 0);

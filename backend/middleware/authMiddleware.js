@@ -10,7 +10,7 @@ const authMiddleware = (req, res, next) => {
     }
 
     const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith("Bearer ")) {
+    if (!auth?.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
         message: "Access denied. No token provided",
