@@ -90,7 +90,6 @@ exports.register = async (req, res, next) => {
       data: { token, user: { id: user.id, name: user.name, email: user.email } }
     });
   } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
     console.error('Register error:', error.message);
     logAuthEvent('REGISTER_ERROR', false);
     next(error);
@@ -158,7 +157,6 @@ exports.login = async (req, res, next) => {
       data: { token, user: { id: user.id, name: user.name, email: user.email } }
     });
   } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
     console.error('Login error:', error.message);
     logAuthEvent('LOGIN_ERROR', false);
     next(error);

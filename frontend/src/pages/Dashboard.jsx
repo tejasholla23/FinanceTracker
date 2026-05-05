@@ -26,7 +26,7 @@ function Dashboard() {
     const loadStats = async () => {
       try {
         const res = await fetchStatistics();
-        if (res && res.success && res.data) {
+        if (res?.success && res?.data) {
           setData((d) => ({
             ...d,
             totalIncome: res.data.totalIncome ?? 0,
@@ -60,7 +60,7 @@ function Dashboard() {
     const loadInsights = async () => {
       try {
         const res = await fetchInsights();
-        if (res && res.success && res.insights) {
+        if (res?.success && res?.insights) {
           setInsightsState({ 
             insights: Array.isArray(res.insights) ? res.insights : [], 
             loading: false, 
