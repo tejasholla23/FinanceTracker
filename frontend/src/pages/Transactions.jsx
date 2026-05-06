@@ -59,6 +59,12 @@ function Transactions() {
     setFilter(type);
   };
 
+  const getFilterLabel = (type) => {
+    if (type === "all") return "All";
+    if (type === "income") return "Income";
+    return "Expenses";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
@@ -72,21 +78,24 @@ function Transactions() {
 
         {/* Filter Buttons */}
         <div className="flex gap-3 mb-6 animate-slideUp">
-          {["all", "income", "expense"].map((type) => (
-            <button
-              key={type}
-              onClick={() => handleFilterChange(type)}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
-                filter === type
-                  ? (type === "all" ? "bg-blue-500 text-white shadow-lg" : 
-                     type === "income" ? "bg-green-500 text-white shadow-lg" : 
-                     "bg-red-500 text-white shadow-lg")
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 shadow"
-              }`}
-            >
-              {type === "all" ? "All" : type === "income" ? "Income" : "Expenses"}
-            </button>
-          ))}
+          {["all", "income", "expense"].map((type) => {
+            const isActive = filter === type;
+            let activeColor = "bg-blue-500 text-white shadow-lg";
+            if (type === "income") activeColor = "bg-green-500 text-white shadow-lg";
+            if (type === "expense") activeColor = "bg-red-500 text-white shadow-lg";
+            
+            const inactiveColor = "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 shadow";
+
+            return (
+              <button
+                key={type}
+                onClick={() => handleFilterChange(type)}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${isActive ? activeColor : inactiveColor}`}
+              >
+                {getFilterLabel(type)}
+              </button>
+            );
+          })}
         </div>
 
         {/* Error Message */}

@@ -101,9 +101,14 @@ app.use((req, res, next) => {
   const maskedIp = ip.length > 8 ? `${ip.slice(0, ip.lastIndexOf('.') || ip.lastIndexOf(':') || 8)}.xxx` : 'masked';
   
   // Sanitize user-controlled path to prevent log injection (CWE-117)
-  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '');
+  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
   
-  console.log(`${new Date().toISOString()} - ${req.method} ${safePath} - IP: ${maskedIp}`);
+  console.log({
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: safePath,
+    ip: maskedIp
+  });
   next();
 });
 
@@ -133,8 +138,12 @@ app.use("/api/transactions", transactionRoutes);
 // 404 handler
 app.use((req, res) => {
   // Sanitize path to prevent log injection
-  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '');
-  console.log(`404: ${req.method} ${safePath.substring(0, 100)}`);
+  const safePath = (req.path || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
+  console.log({
+    type: '404',
+    method: req.method,
+    path: safePath
+  });
   res.status(404).json({
     success: false,
     message: "Route not found",

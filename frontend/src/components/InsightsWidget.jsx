@@ -67,7 +67,7 @@ function InsightsWidget({ insights, loading, error }) {
                   </h4>
 
                   <p className="text-sm opacity-90 leading-relaxed font-medium dark:text-gray-200">
-                    {msg.replace(/[⚠️🎉]/gu, "")}
+                    {msg.replaceAll(/⚠️|🎉/gu, "")}
                   </p>
                 </div>
               </div>

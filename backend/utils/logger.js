@@ -21,40 +21,52 @@ const maskIP = (ip) => {
 };
 
 const logAuthEvent = (event, success, email = null, ip = null) => {
-  const timestamp = new Date().toISOString();
-  
-  // Sanitize all user-controlled strings to prevent log injection
-  const safeEvent = (event || 'AUTH_EVENT').replaceAll(/[\n\r]/gu, '');
-  const maskedEmail = email ? maskEmail(email).replaceAll(/[\n\r]/gu, '') : 'unknown';
-  const maskedIP = ip ? maskIP(ip).replaceAll(/[\n\r]/gu, '') : 'unknown';
-  
-  const status = success ? '✓' : '✗';
-  console.log(`[${timestamp}] ${status} ${safeEvent} (${maskedEmail}) from ${maskedIP}`);
+  const logObj = {
+    timestamp: new Date().toISOString(),
+    type: 'AUTH',
+    status: success ? 'SUCCESS' : 'FAILURE',
+    event: (event || 'AUTH_EVENT').replaceAll(/[\n\r]/gu, ''),
+    email: email ? maskEmail(email).replaceAll(/[\n\r]/gu, '') : 'unknown',
+    ip: ip ? maskIP(ip).replaceAll(/[\n\r]/gu, '') : 'unknown'
+  };
+  console.log(logObj);
 };
 
 const logError = (context, error, includeStack = isDevelopment) => {
-  const timestamp = new Date().toISOString();
-  // Sanitize error message to prevent log injection
-  const safeMessage = (error.message || '').replaceAll(/[\n\r]/gu, '').substring(0, 500);
-  console.error(`[${timestamp}] ERROR in ${context}: ${safeMessage}`);
+  const logObj = {
+    timestamp: new Date().toISOString(),
+    level: 'ERROR',
+    context: (context || '').replaceAll(/[\n\r]/gu, '').substring(0, 500),
+    message: (error.message || '').replaceAll(/[\n\r]/gu, '').substring(0, 500)
+  };
   
-  if (includeStack) {
-    console.error(error.stack);
+  if (includeStack && error.stack) {
+    logObj.stack = error.stack;
   }
+
+  console.error(logObj);
 };
 
 const logQuery = (query, duration) => {
   if (isDevelopment) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] QUERY (${duration}ms): ${query.substring(0, 100)}...`);
+    console.log({
+      timestamp: new Date().toISOString(),
+      type: 'QUERY',
+      duration: `${duration}ms`,
+      query: (query || '').substring(0, 500)
+    });
   }
 };
 
 const logCacheOperation = (operation, key, success) => {
   if (isDevelopment) {
-    const timestamp = new Date().toISOString();
-    const status = success ? '✓' : '✗';
-    console.log(`[${timestamp}] ${status} CACHE ${operation.toUpperCase()}: ${key}`);
+    console.log({
+      timestamp: new Date().toISOString(),
+      type: 'CACHE',
+      operation: (operation || '').toUpperCase(),
+      key,
+      status: success ? 'HIT' : 'MISS'
+    });
   }
 };
 

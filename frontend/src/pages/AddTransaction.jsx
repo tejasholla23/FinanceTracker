@@ -86,27 +86,30 @@ function AddTransaction() {
           
           {/* Transaction Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Transaction Type</label>
+            <span className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Transaction Type</span>
             <div className="flex gap-4">
-              {["expense", "income"].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, type })}
-                  className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${formData.type === type
-                    ? (type === "income" ? "bg-green-500 text-white shadow-lg" : "bg-red-500 text-white shadow-lg")
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  {type === "income" ? "Income" : "Expense"}
-                </button>
-              ))}
+              {["expense", "income"].map((type) => {
+                const isActive = formData.type === type;
+                const activeClass = type === "income" ? "bg-green-500 text-white shadow-lg" : "bg-red-500 text-white shadow-lg";
+                const inactiveClass = "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600";
+
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type })}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${isActive ? activeClass : inactiveClass}`}
+                  >
+                    {type === "income" ? "Income" : "Expense"}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category (Optional)</label>
+            <span className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category (Optional)</span>
             <div className="grid grid-cols-3 gap-3">
               {categories.map((cat) => (
                 <button
